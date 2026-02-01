@@ -9,8 +9,13 @@ import requests
 import json
 import os
 import pydeck as pdk
+import pandas as pd
 from datetime import datetime
 from dotenv import load_dotenv
+
+# Import GNN modules
+from gnn_inference import get_predictor
+from congestion_scorer import CongestionScorer
 
 # ============================================================================
 # CONFIGURATION
@@ -21,6 +26,94 @@ GOOGLE_MAPS_API_KEY = os.getenv("ROUTES_API_KEY")
 
 # NYC center coordinates
 NYC_CENTER = [40.7580, -73.9855]  # Midtown Manhattan
+
+# ============================================================================
+# GNN PREDICTION & CONGESTION SCORING
+# ============================================================================
+
+@st.cache_resource
+def load_gnn_predictor():
+    """Load GNN predictor (cached)."""
+    return get_predictor()
+
+
+@st.cache_data(ttl=300)  # Cache for 5 minutes
+def get_tap_in_predictions():
+    """
+    Get current tap-in predictions from GNN.
+    Randomly samples one entry per station matching the current hour.
+    """
+    try:
+        # Load ridership data
+        ridership_df = pd.read_csv("MTA_Subway_Hourly_Ridership__2020-2024_20260131.csv",
+                                   parse_dates=["transit_timestamp"])
+        
+        # Get current time
+        current_time = datetime.now()
+        current_hour = current_time.hour
+        
+        # Extract hour from timestamps
+        ridership_df['hour'] = ridership_df['transit_timestamp'].dt.hour
+        
+        # Filter to matching hour
+        matching_hour = ridership_df[ridership_df['hour'] == current_hour]
+        
+        if len(matching_hour) == 0:
+            # Fallback if no data for current hour
+            matching_hour = ridership_df
+        
+        # Clean ridership data
+        matching_hour = matching_hour.copy()
+        matching_hour['ridership'] = pd.to_numeric(
+            matching_hour['ridership'].astype(str).str.replace(',', ''),
+            errors='coerce'
+        ).fillna(0)
+        
+        # Randomly sample ONE entry per station_complex_id
+        current_ridership = (
+            matching_hour
+            .groupby('station_complex_id')
+            .sample(n=1, random_state=None)  # random_state=None for true randomness each time
+            [['station_complex_id', 'ridership']]
+            .reset_index(drop=True)
+        )
+        
+        # Run GNN inference
+        predictor = load_gnn_predictor()
+        predictions = predictor.predict(current_ridership, current_time)
+        
+        return predictions
+    
+    except Exception as e:
+        st.warning(f"Could not load GNN predictions: {e}")
+        return {}
+
+
+def calculate_route_quiet_scores(routes: list) -> list:
+    """
+    Add quiet scores to routes based on GNN predictions.
+    
+    Args:
+        routes: List of route dicts
+    
+    Returns:
+        Routes with 'quiet_score' field populated
+    """
+    predictions = get_tap_in_predictions()
+    
+    if not predictions:
+        # If no predictions, return routes with default scores
+        for route in routes:
+            route['quiet_score'] = 5
+        return routes
+    
+    scorer = CongestionScorer(predictions)
+    
+    for route in routes:
+        quiet_score = scorer.calculate_route_quiet_score(route)
+        route['quiet_score'] = quiet_score
+    
+    return routes
 
 # ============================================================================
 # STATION DATA
@@ -214,7 +307,12 @@ def get_routes(origin_id: str, destination_id: str, coords: dict):
         
         # Sort by duration and return top 3
         unique_routes.sort(key=lambda r: r["duration_min"])
-        return unique_routes[:3], None
+        top_routes = unique_routes[:3]
+        
+        # Calculate quiet scores
+        top_routes = calculate_route_quiet_scores(top_routes)
+        
+        return top_routes, None
         
     except requests.RequestException as e:
         return None, f"Network error: {e}"
