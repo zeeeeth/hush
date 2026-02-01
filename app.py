@@ -10,7 +10,7 @@ import json
 import os
 import pydeck as pdk
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 # Import GNN modules
@@ -642,6 +642,47 @@ def inject_custom_css():
         margin: 16px 0 8px 0;
     }
     
+    /* Prediction time banner */
+    .prediction-banner {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(0, 255, 136, 0.1) 100%);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        border-radius: 10px;
+        padding: 14px 18px;
+        margin: 16px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .prediction-icon {
+        font-size: 1.5rem;
+    }
+    
+    .prediction-text {
+        flex: 1;
+    }
+    
+    .prediction-label {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: var(--accent-purple);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+    }
+    
+    .prediction-time {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    .prediction-hint {
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+        margin-top: 2px;
+    }
+    
     /* Error state */
     .error-card {
         background: var(--accent-red-dim);
@@ -690,14 +731,14 @@ def render_route_card(route: dict, index: int):
         elif step["type"] == "walk":
             steps_html += f'<div class="step-row"><span class="walk-icon">→</span><span class="step-details">Walk {step["distance_m"]}m</span><span class="step-meta">{step["duration_min"]}m</span></div>'
     
-    # Quiet score badge
+    # Quiet score badge - emphasize it's a prediction
     if quiet_score is not None:
         if quiet_score >= 7:
-            quiet_html = f'<span class="quiet-badge-good">● Quiet {quiet_score}/10</span>'
+            quiet_html = f'<span class="quiet-badge-good">• Quiet {quiet_score}/10</span>'
         elif quiet_score >= 4:
-            quiet_html = f'<span class="quiet-badge-pending">● Moderate {quiet_score}/10</span>'
+            quiet_html = f'<span class="quiet-badge-pending">• Moderate {quiet_score}/10</span>'
         else:
-            quiet_html = f'<span class="quiet-badge-bad">● Busy {quiet_score}/10</span>'
+            quiet_html = f'<span class="quiet-badge-bad">• Busy {quiet_score}/10</span>'
     else:
         quiet_html = '<span class="quiet-badge-pending">○ Score pending</span>'
     
@@ -741,7 +782,7 @@ def main():
         st.markdown("""
         <div style="margin-bottom: 20px;">
             <div class="app-title">Hush</div>
-            <div class="app-subtitle">Navigate NYC subway with less stress</div>
+            <div class="app-subtitle">Take the road less travelled: Predict subway congestion for the next hour.</div>
         </div>
         """, unsafe_allow_html=True)
         
@@ -783,9 +824,24 @@ def main():
                     <div class="error-card">❌ {error}</div>
                     """, unsafe_allow_html=True)
                 elif routes:
+                    now = datetime.now()
+                    one_hour_later = now + timedelta(hours=1)
+                    
+                    # Prominent prediction time banner
+                    st.markdown(f"""
+                    <div class="prediction-banner">
+                        <span class="prediction-icon">🔮</span>
+                        <div class="prediction-text">
+                            <div class="prediction-label">AI Congestion Forecast</div>
+                            <div class="prediction-time">{now.strftime('%H:%M')} → {one_hour_later.strftime('%H:%M')}</div>
+                            <div class="prediction-hint">Scores reflect predicted crowding for the next hour</div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
                     st.markdown(f"""
                     <div class="results-header">
-                        {len(routes)} route{'s' if len(routes) > 1 else ''} · {datetime.now().strftime('%H:%M')}
+                        {len(routes)} route{'s' if len(routes) > 1 else ''} found
                     </div>
                     """, unsafe_allow_html=True)
                     
