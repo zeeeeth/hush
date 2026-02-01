@@ -1,0 +1,759 @@
+{
+  "routes": [
+    {
+      "legs": [
+        {
+          "steps": [
+            {
+              "staticDuration": "24s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "126s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "1110s",
+              "transitDetails": {
+                "stopDetails": {
+                  "arrivalStop": {
+                    "name": "Whitehall St-South Ferry",
+                    "location": {
+                      "latLng": {
+                        "latitude": 40.703087,
+                        "longitude": -74.012993
+                      }
+                    }
+                  },
+                  "arrivalTime": "2026-02-01T00:44:34Z",
+                  "departureStop": {
+                    "name": "Times Sq - 42 St",
+                    "location": {
+                      "latLng": {
+                        "latitude": 40.754673,
+                        "longitude": -73.986755
+                      }
+                    }
+                  },
+                  "departureTime": "2026-02-01T00:26:04Z"
+                },
+                "localizedValues": {
+                  "arrivalTime": {
+                    "time": {
+                      "text": "7:44\u202fPM"
+                    },
+                    "timeZone": "America/New_York"
+                  },
+                  "departureTime": {
+                    "time": {
+                      "text": "7:26\u202fPM"
+                    },
+                    "timeZone": "America/New_York"
+                  }
+                },
+                "headsign": "Bay Ridge-95 St",
+                "headway": "720s",
+                "transitLine": {
+                  "agencies": [
+                    {
+                      "name": "MTA New York City Transit",
+                      "phoneNumber": "+1 718-330-1234",
+                      "uri": "http://www.mta.info/"
+                    }
+                  ],
+                  "name": "R Train (Broadway Local)",
+                  "uri": "https://www.mta.info/schedules/subway/r-train",
+                  "color": "#f2b925",
+                  "iconUri": "//maps.gstatic.com/mapfiles/transit/iw2/6/us-ny-mta/R.png",
+                  "nameShort": "R Line",
+                  "textColor": "#000000",
+                  "vehicle": {
+                    "name": {
+                      "text": "Subway"
+                    },
+                    "type": "SUBWAY",
+                    "iconUri": "//maps.gstatic.com/mapfiles/transit/iw2/6/subway2.png"
+                  }
+                },
+                "stopCount": 12
+              },
+              "travelMode": "TRANSIT"
+            },
+            {
+              "staticDuration": "104s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "45s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "62s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "7s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "24s",
+              "travelMode": "WALK"
+            }
+          ]
+        }
+      ],
+      "distanceMeters": 6894,
+      "duration": "1502s"
+    },
+    {
+      "legs": [
+        {
+          "steps": [
+            {
+              "staticDuration": "720s",
+              "transitDetails": {
+                "stopDetails": {
+                  "arrivalStop": {
+                    "name": "Wall St",
+                    "location": {
+                      "latLng": {
+                        "latitude": 40.7064817,
+                        "longitude": -74.0094477
+                      }
+                    }
+                  },
+                  "arrivalTime": "2026-02-01T00:38:18Z",
+                  "departureStop": {
+                    "name": "Times Sq\u201342 St",
+                    "location": {
+                      "latLng": {
+                        "latitude": 40.755291,
+                        "longitude": -73.987495
+                      }
+                    }
+                  },
+                  "departureTime": "2026-02-01T00:25:58Z"
+                },
+                "localizedValues": {
+                  "arrivalTime": {
+                    "time": {
+                      "text": "7:38\u202fPM"
+                    },
+                    "timeZone": "America/New_York"
+                  },
+                  "departureTime": {
+                    "time": {
+                      "text": "7:25\u202fPM"
+                    },
+                    "timeZone": "America/New_York"
+                  }
+                },
+                "headsign": "New Lots Av",
+                "headway": "240s",
+                "transitLine": {
+                  "agencies": [
+                    {
+                      "name": "MTA New York City Transit",
+                      "phoneNumber": "+1 718-330-1234",
+                      "uri": "http://www.mta.info/"
+                    }
+                  ],
+                  "name": "3 Train (7 Av Express)",
+                  "uri": "https://www.mta.info/schedules/subway/3-train",
+                  "color": "#d82233",
+                  "iconUri": "//maps.gstatic.com/mapfiles/transit/iw2/6/us-ny-mta/3.png",
+                  "nameShort": "3 Line",
+                  "textColor": "#ffffff",
+                  "vehicle": {
+                    "name": {
+                      "text": "Subway"
+                    },
+                    "type": "SUBWAY",
+                    "iconUri": "//maps.gstatic.com/mapfiles/transit/iw2/6/subway2.png"
+                  }
+                },
+                "stopCount": 7
+              },
+              "travelMode": "TRANSIT"
+            },
+            {
+              "staticDuration": "43s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "60s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "208s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "212s",
+              "travelMode": "WALK"
+            }
+          ]
+        }
+      ],
+      "distanceMeters": 6756,
+      "duration": "1263s"
+    },
+    {
+      "legs": [
+        {
+          "steps": [
+            {
+              "staticDuration": "24s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "126s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "510s",
+              "transitDetails": {
+                "stopDetails": {
+                  "arrivalStop": {
+                    "name": "Canal St",
+                    "location": {
+                      "latLng": {
+                        "latitude": 40.719390499999996,
+                        "longitude": -74.0017752
+                      }
+                    }
+                  },
+                  "arrivalTime": "2026-02-01T00:41:45Z",
+                  "departureStop": {
+                    "name": "Times Sq - 42 St",
+                    "location": {
+                      "latLng": {
+                        "latitude": 40.754673,
+                        "longitude": -73.986755
+                      }
+                    }
+                  },
+                  "departureTime": "2026-02-01T00:33:15Z"
+                },
+                "localizedValues": {
+                  "arrivalTime": {
+                    "time": {
+                      "text": "7:41\u202fPM"
+                    },
+                    "timeZone": "America/New_York"
+                  },
+                  "departureTime": {
+                    "time": {
+                      "text": "7:33\u202fPM"
+                    },
+                    "timeZone": "America/New_York"
+                  }
+                },
+                "headsign": "Coney Island-Stillwell Av",
+                "headway": "360s",
+                "transitLine": {
+                  "agencies": [
+                    {
+                      "name": "MTA New York City Transit",
+                      "phoneNumber": "+1 718-330-1234",
+                      "uri": "http://www.mta.info/"
+                    }
+                  ],
+                  "name": "Q Train (2 Av/Broadway Express)",
+                  "uri": "https://www.mta.info/schedules/subway/q-train",
+                  "color": "#f2b925",
+                  "iconUri": "//maps.gstatic.com/mapfiles/transit/iw2/6/us-ny-mta/Q.png",
+                  "nameShort": "Q Line",
+                  "textColor": "#000000",
+                  "vehicle": {
+                    "name": {
+                      "text": "Subway"
+                    },
+                    "type": "SUBWAY",
+                    "iconUri": "//maps.gstatic.com/mapfiles/transit/iw2/6/subway2.png"
+                  }
+                },
+                "stopCount": 4
+              },
+              "travelMode": "TRANSIT"
+            },
+            {
+              "staticDuration": "75s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "360s",
+              "transitDetails": {
+                "stopDetails": {
+                  "arrivalStop": {
+                    "name": "Bowling Green",
+                    "location": {
+                      "latLng": {
+                        "latitude": 40.704819,
+                        "longitude": -74.01406899999999
+                      }
+                    }
+                  },
+                  "arrivalTime": "2026-02-01T00:50:59Z",
+                  "departureStop": {
+                    "name": "Canal St",
+                    "location": {
+                      "latLng": {
+                        "latitude": 40.7184294,
+                        "longitude": -74.0006557
+                      }
+                    }
+                  },
+                  "departureTime": "2026-02-01T00:44:59Z"
+                },
+                "localizedValues": {
+                  "arrivalTime": {
+                    "time": {
+                      "text": "7:50\u202fPM"
+                    },
+                    "timeZone": "America/New_York"
+                  },
+                  "departureTime": {
+                    "time": {
+                      "text": "7:44\u202fPM"
+                    },
+                    "timeZone": "America/New_York"
+                  }
+                },
+                "headsign": "Crown Hts-Utica Av",
+                "headway": "300s",
+                "transitLine": {
+                  "agencies": [
+                    {
+                      "name": "MTA New York City Transit",
+                      "phoneNumber": "+1 718-330-1234",
+                      "uri": "http://www.mta.info/"
+                    }
+                  ],
+                  "name": "4 Train (Lexington Av Express)",
+                  "uri": "https://www.mta.info/schedules/subway/4-train",
+                  "color": "#009952",
+                  "iconUri": "//maps.gstatic.com/mapfiles/transit/iw2/6/us-ny-mta/4.png",
+                  "nameShort": "4 Line",
+                  "textColor": "#ffffff",
+                  "vehicle": {
+                    "name": {
+                      "text": "Subway"
+                    },
+                    "type": "SUBWAY",
+                    "iconUri": "//maps.gstatic.com/mapfiles/transit/iw2/6/subway2.png"
+                  }
+                },
+                "stopCount": 5
+              },
+              "travelMode": "TRANSIT"
+            }
+          ]
+        }
+      ],
+      "distanceMeters": 6500,
+      "duration": "1214s"
+    },
+    {
+      "legs": [
+        {
+          "steps": [
+            {
+              "staticDuration": "660s",
+              "transitDetails": {
+                "stopDetails": {
+                  "arrivalStop": {
+                    "name": "Fulton St",
+                    "location": {
+                      "latLng": {
+                        "latitude": 40.709415,
+                        "longitude": -74.006569
+                      }
+                    }
+                  },
+                  "arrivalTime": "2026-02-01T00:37:18Z",
+                  "departureStop": {
+                    "name": "Times Sq\u201342 St",
+                    "location": {
+                      "latLng": {
+                        "latitude": 40.755291,
+                        "longitude": -73.987495
+                      }
+                    }
+                  },
+                  "departureTime": "2026-02-01T00:25:58Z"
+                },
+                "localizedValues": {
+                  "arrivalTime": {
+                    "time": {
+                      "text": "7:37\u202fPM"
+                    },
+                    "timeZone": "America/New_York"
+                  },
+                  "departureTime": {
+                    "time": {
+                      "text": "7:25\u202fPM"
+                    },
+                    "timeZone": "America/New_York"
+                  }
+                },
+                "headsign": "New Lots Av",
+                "headway": "240s",
+                "transitLine": {
+                  "agencies": [
+                    {
+                      "name": "MTA New York City Transit",
+                      "phoneNumber": "+1 718-330-1234",
+                      "uri": "http://www.mta.info/"
+                    }
+                  ],
+                  "name": "3 Train (7 Av Express)",
+                  "uri": "https://www.mta.info/schedules/subway/3-train",
+                  "color": "#d82233",
+                  "iconUri": "//maps.gstatic.com/mapfiles/transit/iw2/6/us-ny-mta/3.png",
+                  "nameShort": "3 Line",
+                  "textColor": "#ffffff",
+                  "vehicle": {
+                    "name": {
+                      "text": "Subway"
+                    },
+                    "type": "SUBWAY",
+                    "iconUri": "//maps.gstatic.com/mapfiles/transit/iw2/6/subway2.png"
+                  }
+                },
+                "stopCount": 6
+              },
+              "travelMode": "TRANSIT"
+            },
+            {
+              "staticDuration": "335s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "150s",
+              "transitDetails": {
+                "stopDetails": {
+                  "arrivalStop": {
+                    "name": "Bowling Green",
+                    "location": {
+                      "latLng": {
+                        "latitude": 40.704819,
+                        "longitude": -74.01406899999999
+                      }
+                    }
+                  },
+                  "arrivalTime": "2026-02-01T00:50:59Z",
+                  "departureStop": {
+                    "name": "Fulton St",
+                    "location": {
+                      "latLng": {
+                        "latitude": 40.710369,
+                        "longitude": -74.009506
+                      }
+                    }
+                  },
+                  "departureTime": "2026-02-01T00:48:29Z"
+                },
+                "localizedValues": {
+                  "arrivalTime": {
+                    "time": {
+                      "text": "7:50\u202fPM"
+                    },
+                    "timeZone": "America/New_York"
+                  },
+                  "departureTime": {
+                    "time": {
+                      "text": "7:48\u202fPM"
+                    },
+                    "timeZone": "America/New_York"
+                  }
+                },
+                "headsign": "Crown Hts-Utica Av",
+                "headway": "300s",
+                "transitLine": {
+                  "agencies": [
+                    {
+                      "name": "MTA New York City Transit",
+                      "phoneNumber": "+1 718-330-1234",
+                      "uri": "http://www.mta.info/"
+                    }
+                  ],
+                  "name": "4 Train (Lexington Av Express)",
+                  "uri": "https://www.mta.info/schedules/subway/4-train",
+                  "color": "#009952",
+                  "iconUri": "//maps.gstatic.com/mapfiles/transit/iw2/6/us-ny-mta/4.png",
+                  "nameShort": "4 Line",
+                  "textColor": "#ffffff",
+                  "vehicle": {
+                    "name": {
+                      "text": "Subway"
+                    },
+                    "type": "SUBWAY",
+                    "iconUri": "//maps.gstatic.com/mapfiles/transit/iw2/6/subway2.png"
+                  }
+                },
+                "stopCount": 3
+              },
+              "travelMode": "TRANSIT"
+            }
+          ]
+        }
+      ],
+      "distanceMeters": 6745,
+      "duration": "1501s"
+    },
+    {
+      "legs": [
+        {
+          "steps": [
+            {
+              "staticDuration": "960s",
+              "transitDetails": {
+                "stopDetails": {
+                  "arrivalStop": {
+                    "name": "Rector St",
+                    "location": {
+                      "latLng": {
+                        "latitude": 40.707512,
+                        "longitude": -74.013786
+                      }
+                    }
+                  },
+                  "arrivalTime": "2026-02-01T00:47:00Z",
+                  "departureStop": {
+                    "name": "Times Sq\u201342 St",
+                    "location": {
+                      "latLng": {
+                        "latitude": 40.755291,
+                        "longitude": -73.987495
+                      }
+                    }
+                  },
+                  "departureTime": "2026-02-01T00:31:00Z"
+                },
+                "localizedValues": {
+                  "arrivalTime": {
+                    "time": {
+                      "text": "7:47\u202fPM"
+                    },
+                    "timeZone": "America/New_York"
+                  },
+                  "departureTime": {
+                    "time": {
+                      "text": "7:31\u202fPM"
+                    },
+                    "timeZone": "America/New_York"
+                  }
+                },
+                "headsign": "South Ferry",
+                "headway": "360s",
+                "transitLine": {
+                  "agencies": [
+                    {
+                      "name": "MTA New York City Transit",
+                      "phoneNumber": "+1 718-330-1234",
+                      "uri": "http://www.mta.info/"
+                    }
+                  ],
+                  "name": "1 Train (Broadway-7 Av Local)",
+                  "uri": "https://www.mta.info/schedules/subway/1-train",
+                  "color": "#d82233",
+                  "iconUri": "//maps.gstatic.com/mapfiles/transit/iw2/6/us-ny-mta/1.png",
+                  "nameShort": "1 Line",
+                  "textColor": "#ffffff",
+                  "vehicle": {
+                    "name": {
+                      "text": "Subway"
+                    },
+                    "type": "SUBWAY",
+                    "iconUri": "//maps.gstatic.com/mapfiles/transit/iw2/6/subway2.png"
+                  }
+                },
+                "stopCount": 13
+              },
+              "travelMode": "TRANSIT"
+            },
+            {
+              "staticDuration": "120s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "21s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "100s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "111s",
+              "travelMode": "WALK"
+            }
+          ]
+        }
+      ],
+      "distanceMeters": 6210,
+      "duration": "1312s"
+    },
+    {
+      "legs": [
+        {
+          "steps": [
+            {
+              "staticDuration": "60s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "56s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "177s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "420s",
+              "transitDetails": {
+                "stopDetails": {
+                  "arrivalStop": {
+                    "name": "Broadway-Lafayette St",
+                    "location": {
+                      "latLng": {
+                        "latitude": 40.7251516,
+                        "longitude": -73.9956353
+                      }
+                    }
+                  },
+                  "arrivalTime": "2026-02-01T00:38:04Z",
+                  "departureStop": {
+                    "name": "42 St-Bryant Pk",
+                    "location": {
+                      "latLng": {
+                        "latitude": 40.754222999999996,
+                        "longitude": -73.984566
+                      }
+                    }
+                  },
+                  "departureTime": "2026-02-01T00:31:04Z"
+                },
+                "localizedValues": {
+                  "arrivalTime": {
+                    "time": {
+                      "text": "7:38\u202fPM"
+                    },
+                    "timeZone": "America/New_York"
+                  },
+                  "departureTime": {
+                    "time": {
+                      "text": "7:31\u202fPM"
+                    },
+                    "timeZone": "America/New_York"
+                  }
+                },
+                "headsign": "Coney Island-Stillwell Av",
+                "headway": "720s",
+                "transitLine": {
+                  "agencies": [
+                    {
+                      "name": "MTA New York City Transit",
+                      "phoneNumber": "+1 718-330-1234",
+                      "uri": "http://www.mta.info/"
+                    }
+                  ],
+                  "name": "D Train (6 Av Express)",
+                  "uri": "https://www.mta.info/schedules/subway/d-train",
+                  "color": "#eb6800",
+                  "iconUri": "//maps.gstatic.com/mapfiles/transit/iw2/6/us-ny-mta/D.png",
+                  "nameShort": "D Line",
+                  "textColor": "#ffffff",
+                  "vehicle": {
+                    "name": {
+                      "text": "Subway"
+                    },
+                    "type": "SUBWAY",
+                    "iconUri": "//maps.gstatic.com/mapfiles/transit/iw2/6/subway2.png"
+                  }
+                },
+                "stopCount": 4
+              },
+              "travelMode": "TRANSIT"
+            },
+            {
+              "staticDuration": "59s",
+              "travelMode": "WALK"
+            },
+            {
+              "staticDuration": "510s",
+              "transitDetails": {
+                "stopDetails": {
+                  "arrivalStop": {
+                    "name": "Bowling Green",
+                    "location": {
+                      "latLng": {
+                        "latitude": 40.704819,
+                        "longitude": -74.01406899999999
+                      }
+                    }
+                  },
+                  "arrivalTime": "2026-02-01T00:50:59Z",
+                  "departureStop": {
+                    "name": "Bleecker St",
+                    "location": {
+                      "latLng": {
+                        "latitude": 40.7259673,
+                        "longitude": -73.9946928
+                      }
+                    }
+                  },
+                  "departureTime": "2026-02-01T00:42:29Z"
+                },
+                "localizedValues": {
+                  "arrivalTime": {
+                    "time": {
+                      "text": "7:50\u202fPM"
+                    },
+                    "timeZone": "America/New_York"
+                  },
+                  "departureTime": {
+                    "time": {
+                      "text": "7:42\u202fPM"
+                    },
+                    "timeZone": "America/New_York"
+                  }
+                },
+                "headsign": "Crown Hts-Utica Av",
+                "headway": "360s",
+                "transitLine": {
+                  "agencies": [
+                    {
+                      "name": "MTA New York City Transit",
+                      "phoneNumber": "+1 718-330-1234",
+                      "uri": "http://www.mta.info/"
+                    }
+                  ],
+                  "name": "4 Train (Lexington Av Express)",
+                  "uri": "https://www.mta.info/schedules/subway/4-train",
+                  "color": "#009952",
+                  "iconUri": "//maps.gstatic.com/mapfiles/transit/iw2/6/us-ny-mta/4.png",
+                  "nameShort": "4 Line",
+                  "textColor": "#ffffff",
+                  "vehicle": {
+                    "name": {
+                      "text": "Subway"
+                    },
+                    "type": "SUBWAY",
+                    "iconUri": "//maps.gstatic.com/mapfiles/transit/iw2/6/subway2.png"
+                  }
+                },
+                "stopCount": 7
+              },
+              "travelMode": "TRANSIT"
+            }
+          ]
+        }
+      ],
+      "distanceMeters": 7378,
+      "duration": "1493s"
+    }
+  ]
+}
