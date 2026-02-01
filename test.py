@@ -38,7 +38,7 @@ def load_station_coordinates():
     
     # Try to load from local cache first
     try:
-        with open("mta_stops_cache.json", "r") as f:
+        with open("data/mta_stops_cache.json", "r") as f:
             _station_coords_cache = json.load(f)
             print(f"   ✅ Loaded {len(_station_coords_cache)} stations from cache")
             return _station_coords_cache
@@ -60,7 +60,7 @@ def load_station_coordinates():
         
         # Extract stops.txt from the zip
         with zipfile.ZipFile(io.BytesIO(response.content)) as z:
-            with z.open("stops.txt") as f:
+            with z.open("datastops.txt") as f:
                 reader = csv.DictReader(io.TextIOWrapper(f, 'utf-8'))
                 
                 _station_coords_cache = {}
@@ -78,7 +78,7 @@ def load_station_coordinates():
                         }
         
         # Save cache
-        with open("mta_stops_cache.json", "w") as f:
+        with open("data/mta_stops_cache.json", "w") as f:
             json.dump(_station_coords_cache, f)
         
         print(f"   ✅ Loaded {len(_station_coords_cache)} stations from GTFS")

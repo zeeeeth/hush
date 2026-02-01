@@ -45,7 +45,7 @@ def get_tap_in_predictions():
     """
     try:
         # Load ridership data
-        ridership_df = pd.read_csv("MTA_Subway_Hourly_Ridership__2020-2024_20260131.csv",
+        ridership_df = pd.read_csv("data/MTA_Subway_Hourly_Ridership__2020-2024_20260131.csv",
                                    parse_dates=["transit_timestamp"])
         
         # Get current time
@@ -123,7 +123,7 @@ def calculate_route_quiet_scores(routes: list) -> list:
 def load_station_coordinates():
     """Load MTA station coordinates from cached GTFS data."""
     try:
-        with open("mta_stops_cache.json", "r") as f:
+        with open("data/mta_stops_cache.json", "r") as f:
             return json.load(f)
     except FileNotFoundError:
         return {}
@@ -346,6 +346,8 @@ def inject_custom_css():
         --accent-green-dim: rgba(0, 255, 136, 0.15);
         --accent-red: #ff4444;
         --accent-red-dim: rgba(255, 68, 68, 0.15);
+        --accent-yellow: #ffd700;
+        --accent-yellow-dim: rgba(255, 215, 0, 0.15);
         --accent-purple: #8b5cf6;
     }
     
@@ -558,8 +560,8 @@ def inject_custom_css():
     }
     
     .quiet-badge-pending {
-        background: transparent;
-        color: var(--text-tertiary);
+        background: var(--accent-yellow-dim);
+        color: var(--accent-yellow);
         padding: 6px 12px;
         border-radius: 6px;
         font-weight: 500;
@@ -693,7 +695,7 @@ def render_route_card(route: dict, index: int):
         if quiet_score >= 7:
             quiet_html = f'<span class="quiet-badge-good">● Quiet {quiet_score}/10</span>'
         elif quiet_score >= 4:
-            quiet_html = f'<span class="quiet-badge-pending">○ Moderate {quiet_score}/10</span>'
+            quiet_html = f'<span class="quiet-badge-pending">● Moderate {quiet_score}/10</span>'
         else:
             quiet_html = f'<span class="quiet-badge-bad">● Busy {quiet_score}/10</span>'
     else:
@@ -711,7 +713,7 @@ def render_route_card(route: dict, index: int):
 
 def main():
     st.set_page_config(
-        page_title="Quiet Routes",
+        page_title="Hush",
         page_icon="🚇",
         layout="wide",
         initial_sidebar_state="collapsed"
@@ -738,7 +740,7 @@ def main():
         # Header
         st.markdown("""
         <div style="margin-bottom: 20px;">
-            <div class="app-title">Quiet Routes</div>
+            <div class="app-title">Hush</div>
             <div class="app-subtitle">Navigate NYC subway with less stress</div>
         </div>
         """, unsafe_allow_html=True)

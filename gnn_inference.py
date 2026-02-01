@@ -28,9 +28,9 @@ class GNN(nn.Module):
 class GNNPredictor:
     """Wrapper for GNN inference."""
     
-    def __init__(self, model_path="model.pt", stats_path="stats.csv", 
-                 cmplx_to_node_path="cmplx_to_node.csv",
-                 edges_path="complex_edges.csv"):
+    def __init__(self, model_path="models/model.pt", stats_path="stats.csv", 
+                 cmplx_to_node_path="data/cmplx_to_node.csv",
+                 edges_path="data/complex_edges.csv"):
         """Initialize predictor with model and mappings."""
         
         # Load model

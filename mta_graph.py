@@ -2,9 +2,9 @@ import pandas as pd
 import networkx as nx
 
 # Load GTFS static data (downloaded MTA GTFS ZIP)
-stops = pd.read_csv("stops.txt")
-stop_times = pd.read_csv("stop_times.txt")
-trips = pd.read_csv("trips.txt")
+stops = pd.read_csv("data/stops.txt")
+stop_times = pd.read_csv("data/stop_times.txt")
+trips = pd.read_csv("data/trips.txt")
 
 # Build mapping from trip_id → ordered list of stops
 stop_times = stop_times.sort_values(["trip_id","stop_sequence"])
@@ -27,7 +27,7 @@ nodes_data = {}
 for node_id, attrs in G.nodes(data=True):
     nodes_data[node_id] = attrs.get("name", "Unknown")
 
-with open("nodes.py", "w") as f:
+with open("data/nodes.py", "w") as f:
     f.write("# MTA Graph Nodes (Auto-generated)\n")
     f.write("NODES = {\n")
     for node_id, name in sorted(nodes_data.items()):
@@ -37,7 +37,7 @@ with open("nodes.py", "w") as f:
 # Write edges to edges.py
 edges_list = list(G.edges())
 
-with open("edges.py", "w") as f:
+with open("data/edges.py", "w") as f:
     f.write("# MTA Graph Edges (Auto-generated)\n")
     f.write("EDGES = [\n")
     for a, b in sorted(edges_list):

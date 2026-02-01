@@ -24,7 +24,7 @@ class CongestionScorer:
         # Load station name -> complex ID mapping from stop_to_complex.csv
         self.station_name_to_id = {}
         try:
-            mapping_df = pd.read_csv("stop_to_complex.csv")
+            mapping_df = pd.read_csv("data/stop_to_complex.csv")
             for _, row in mapping_df.iterrows():
                 name = str(row['Stop Name']).strip()
                 complex_id = int(row['Complex ID'])
