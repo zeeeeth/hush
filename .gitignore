@@ -1,3 +1,6 @@
 .env
 venv
-node_modules
+__pycache__/
+.vscode/
+data/raw/MTA_Subway_Hourly_Ridership__2020-2024_20260131.csv
+data/raw/2020_2025.csv
