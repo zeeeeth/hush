@@ -1,95 +1,73 @@
-# 🚇 Sensory-Safe Router
+# Hush — MTA Sensory-Safe Router
 
-**A smarter way to navigate London for neurodiverse travelers.**
+A routing app for the NYC subway that finds the **quietest** route, not just the fastest. Uses a Graph Neural Network trained on MTA ridership data to predict station congestion and score routes on a 0–10 quiet scale.
 
-> *"For 20% of Londoners, the fastest route is the wrong route. Anxiety and sensory overload make the Tube inaccessible."*
+## How It Works
 
-## 🎯 What It Does
+1. **GNN Prediction** — A two-layer GCN model (`models/model.pt`) takes current ridership data and time-of-day features, then predicts next-hour tap-ins for every station complex.
+2. **Congestion Scoring** — Predicted tap-ins are percentile-ranked across all stations. Each station gets a congestion score (0.0–1.0), and route scores are computed as a weighted average with distance decay.
+3. **Route Selection** — The Google Routes API returns up to 3 subway/rail routes between two stations. Each route is assigned a quiet score (0 = busy, 10 = quiet) so users can choose the calmest option.
 
-This app doesn't just find the fastest route—it finds the **calmest** one. We analyze TfL data to score routes based on:
+## Quick Start
 
-- 📊 **Real-time crowding** at every station
-- ⚠️ **Service disruptions** and delays  
-- 🔄 **Number of interchanges** (stressful for many!)
-- ⏰ **Time-based predictions** for crowding
+### Prerequisites
+- Python 3.12+
+- A Google Cloud API key with the Routes API enabled
 
-## 🧮 The Algorithm
+### Setup
 
-For each route option, we calculate a **Sensory Score**:
-
-$$S = \sum_{stop \in R} (C_{stop} \times W_{type}) + P_{penalty}$$
-
-Where:
-- **C_stop** = Crowding level (0.0 to 1.0)
-- **W_type** = Stress weight by activity type:
-  - Platform waiting: 1.0 (highest)
-  - Train travel: 0.6
-  - Walking: 0.3
-  - Interchanges: 0.8
-- **P_penalty** = +50 for severe delays
-
-## 🚀 Quick Start
-
-### 1. Get a TfL API Key (Optional but Recommended)
-- Go to [api-portal.tfl.gov.uk](https://api-portal.tfl.gov.uk)
-- Register and create an app to get your API key
-- Add it to `choochoo.py` in the `TFL_APP_KEY` variable
-
-### 2. Install Dependencies
 ```bash
+# 1. Create a .env file with your API key
+echo "ROUTES_API_KEY=your_key_here" > .env
+
+# 2. Run the start script (creates venv, installs deps, launches app)
+bash start_app.sh
+```
+
+Or manually:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
+streamlit run src/app.py
 ```
 
-### 3. Run the App
-```bash
-streamlit run choochoo.py
-```
+Open **http://localhost:8501** in your browser.
 
-### 4. Open in Browser
-Navigate to `http://localhost:8501`
-
-## 🛠️ Tech Stack
-
-- **Backend**: Python + Requests (TfL API integration)
-- **Frontend**: Streamlit (rapid UI development)
-- **Visualization**: Plotly (interactive charts)
-- **Data**: Pandas (data manipulation)
-
-## 📡 TfL APIs Used
-
-| Endpoint | Purpose |
-|----------|---------|
-| `/Journey/JourneyResults/{from}/to/{to}` | Get route options |
-| `/crowding/{NaptanID}` | Station crowding data |
-| `/Line/Mode/tube,dlr/Status` | Real-time line status |
-| `/StopPoint/Search` | Station search |
-
-## 💡 Demo Script
-
-**The Hook:**
-> "For 20% of Londoners, the fastest route is the wrong route. Anxiety and sensory overload make the Tube inaccessible."
-
-**Live Test:**
-1. Enter `Bank` to `Oxford Circus` at 8:45 AM
-2. Watch the app recommend a calmer route
-3. See the crowding visualization for each option
-
-**Tech Flex:**
-> "We hit the TfL Crowding API for every single stop, calculated a dynamic congestion probability, and optimized for mental health, not just minutes."
-
-## 📁 Project Structure
+## Project Structure
 
 ```
-ichack26/
-├── choochoo.py        # Main application
-├── requirements.txt   # Python dependencies
-└── README.md          # This file
+hush/
+├── src/
+│   ├── app.py                 # Streamlit frontend & routing logic
+│   ├── gnn_inference.py       # GNN model loading & prediction
+│   └── congestion_scorer.py   # Quiet score calculation
+├── models/
+│   └── model.pt               # Trained GCN model weights
+├── data/
+│   ├── raw/                   # MTA ridership CSVs, GTFS files
+│   └── processed/             # Station mappings, edges, stats
+├── training/
+│   ├── test_train.ipynb       # Model training notebook
+│   ├── test_eval.ipynb        # Model evaluation notebook
+│   └── preprocessing/         # Data preprocessing scripts
+├── start_app.sh               # One-command setup & launch
+├── requirements.txt
+└── README.md
 ```
 
-## 🏆 Built for IC Hack 26
+## Tech Stack
 
-Solving accessibility for neurodiverse Londoners using data-driven decision making.
+| Layer | Technology |
+|-------|------------|
+| Frontend | Streamlit, Pydeck |
+| ML Model | PyTorch, PyTorch Geometric (GCN) |
+| Routing | Google Routes API |
+| Data | Pandas, NumPy, SciPy |
 
----
+## Data
 
-Made with 💙 for a calmer commute
+- **MTA Hourly Ridership (2020–2025)** — tap-in counts per station per hour
+- **GTFS Static** — stop coordinates, trips, stop times
+- **Processed** — station complex graph edges, node mappings, normalization stats
