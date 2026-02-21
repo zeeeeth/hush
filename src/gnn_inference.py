@@ -29,8 +29,8 @@ class GNNPredictor:
     """Wrapper for GNN inference."""
     
     def __init__(self, model_path="models/model.pt", stats_path="data/processed/stats.csv", 
-                 cmplx_to_node_path="data/processed/cmplx_to_node.csv",
-                 edges_path="data/processed/complex_edges.csv"):
+                 ComplexNodes_path="data/processed/ComplexNodes.csv",
+                 edges_path="data/processed/ComplexEdges.csv"):
         """Initialize predictor with model and mappings."""
         
         # Load model
@@ -39,14 +39,14 @@ class GNNPredictor:
         self.model.eval()
         
         # Load station mappings
-        self.cmplx_to_node = pd.read_csv(cmplx_to_node_path)
+        self.ComplexNodes = pd.read_csv(ComplexNodes_path)
         self.node_to_cmplx = dict(zip(
-            self.cmplx_to_node['node_id'], 
-            self.cmplx_to_node['complex_id']
+            self.ComplexNodes['node_id'], 
+            self.ComplexNodes['complex_id']
         ))
-        self.cmplx_to_node_dict = dict(zip(
-            self.cmplx_to_node['complex_id'],
-            self.cmplx_to_node['node_id']
+        self.ComplexNodes_dict = dict(zip(
+            self.ComplexNodes['complex_id'],
+            self.ComplexNodes['node_id']
         ))
         
         # Load normalization stats
@@ -62,14 +62,14 @@ class GNNPredictor:
         for _, row in edges_df.iterrows():
             start = row['from_complex_id']
             end = row['to_complex_id']
-            if start in self.cmplx_to_node_dict and end in self.cmplx_to_node_dict:
-                start_node = self.cmplx_to_node_dict[start]
-                end_node = self.cmplx_to_node_dict[end]
+            if start in self.ComplexNodes_dict and end in self.ComplexNodes_dict:
+                start_node = self.ComplexNodes_dict[start]
+                end_node = self.ComplexNodes_dict[end]
                 edge_list.append([start_node, end_node])
                 edge_list.append([end_node, start_node])  # Undirected
         
         self.edge_tensor = torch.tensor(edge_list, dtype=torch.long).T
-        self.num_nodes = int(self.cmplx_to_node['node_id'].max() + 1)
+        self.num_nodes = int(self.ComplexNodes['node_id'].max() + 1)
     
     def predict(self, current_ridership_df: pd.DataFrame, current_time: datetime = None):
         """
@@ -97,10 +97,10 @@ class GNNPredictor:
             cmplx_id = row['station_complex_id']
             ridership = row['ridership']
             
-            if cmplx_id not in self.cmplx_to_node_dict:
+            if cmplx_id not in self.ComplexNodes_dict:
                 continue
             
-            node_id = self.cmplx_to_node_dict[cmplx_id]
+            node_id = self.ComplexNodes_dict[cmplx_id]
             
             # Normalize ridership
             if cmplx_id in self.stats_dict:

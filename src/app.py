@@ -41,40 +41,39 @@ def load_gnn_predictor():
     return get_predictor()
 
 
-@st.cache_data(ttl=300)  # Cache for 5 minutes
+@st.cache_data(ttl=300, show_spinner=False)  # Cache for 5 minutes
 def get_tap_in_predictions():
     """
     Get current tap-in predictions from GNN.
-    Randomly samples one entry per station matching the current hour.
+    Randomly samples one entry per station from 2024.csv matching the current hour.
     """
     try:
-        # Load ridership data
-        ridership_df = pd.read_csv("data/raw/MTA_Subway_Hourly_Ridership__2020-2024_20260131.csv",
+        # Load 2024 ridership data only
+        ridership_df = pd.read_csv("data/raw/2024.csv",
                                    parse_dates=["transit_timestamp"],
-                                   date_format="%Y-%m-%d %H:%M:%S",
+                                   date_format="%m/%d/%Y %I:%M:%S %p",
                                    low_memory=False)
-        
         # Get current time
         current_time = datetime.now()
         current_hour = current_time.hour
-        
+
         # Extract hour from timestamps
         ridership_df['hour'] = ridership_df['transit_timestamp'].dt.hour
-        
+
         # Filter to matching hour
         matching_hour = ridership_df[ridership_df['hour'] == current_hour]
-        
+
         if len(matching_hour) == 0:
             # Fallback if no data for current hour
             matching_hour = ridership_df
-        
+
         # Clean ridership data
         matching_hour = matching_hour.copy()
         matching_hour['ridership'] = pd.to_numeric(
             matching_hour['ridership'].astype(str).str.replace(',', ''),
             errors='coerce'
         ).fillna(0)
-        
+
         # Randomly sample ONE entry per station_complex_id
         current_ridership = (
             matching_hour
@@ -83,13 +82,11 @@ def get_tap_in_predictions():
             [['station_complex_id', 'ridership']]
             .reset_index(drop=True)
         )
-        
+
         # Run GNN inference
         predictor = load_gnn_predictor()
         predictions = predictor.predict(current_ridership, current_time)
-        
         return predictions
-    
     except Exception as e:
         st.warning(f"Could not load GNN predictions: {e}")
         return {}
@@ -129,17 +126,17 @@ def calculate_route_quiet_scores(routes: list) -> list:
 def load_station_coordinates():
     """Load MTA station coordinates from cached GTFS data."""
     try:
-        df = pd.read_csv("data/processed/mta_stops_cache.csv")
+        df = pd.read_csv("data/processed/StopCoords.csv")
         return {row['stop_id']: {'lat': row['lat'], 'lng': row['lng'], 'name': row['name']} for _, row in df.iterrows()}
     except FileNotFoundError:
         return {}
 
 
 @st.cache_data
-def load_names_to_coords():
+def load_DedupedStopCoords():
     """Load station name to coordinates mapping."""
     try:
-        df = pd.read_csv("data/processed/names_to_coords.csv")
+        df = pd.read_csv("data/processed/DedupedStopCoords.csv")
         return {row['name']: {'lat': row['lat'], 'lng': row['lng']} for _, row in df.iterrows()}
     except FileNotFoundError:
         return {}
@@ -165,30 +162,30 @@ def get_station_list():
 
 
 def find_station_coords_by_name(name: str) -> dict:
-    """Find station coordinates by name using names_to_coords.csv."""
-    names_to_coords = load_names_to_coords()
+    """Find station coordinates by name using DedupedStopCoords.csv."""
+    DedupedStopCoords = load_DedupedStopCoords()
     name_stripped = name.strip()
     
     # First try exact match
-    if name_stripped in names_to_coords:
-        data = names_to_coords[name_stripped]
+    if name_stripped in DedupedStopCoords:
+        data = DedupedStopCoords[name_stripped]
         return {"lat": data["lat"], "lng": data["lng"], "name": name_stripped}
     
     # Try case-insensitive exact match
     name_lower = name_stripped.lower()
-    for station_name, data in names_to_coords.items():
+    for station_name, data in DedupedStopCoords.items():
         if station_name.lower() == name_lower:
             return {"lat": data["lat"], "lng": data["lng"], "name": station_name}
     
     # Try partial match
-    for station_name, data in names_to_coords.items():
+    for station_name, data in DedupedStopCoords.items():
         station_lower = station_name.lower()
         if name_lower in station_lower or station_lower in name_lower:
             return {"lat": data["lat"], "lng": data["lng"], "name": station_name}
     
     # Try matching without suffixes like "St", "Ave", etc.
     name_clean = name_lower.replace(" st", "").replace(" ave", "").replace(" sq", "")
-    for station_name, data in names_to_coords.items():
+    for station_name, data in DedupedStopCoords.items():
         station_clean = station_name.lower().replace(" st", "").replace(" ave", "").replace(" sq", "")
         if name_clean in station_clean or station_clean in name_clean:
             return {"lat": data["lat"], "lng": data["lng"], "name": station_name}

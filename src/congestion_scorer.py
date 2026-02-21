@@ -21,10 +21,10 @@ class CongestionScorer:
         self.predictions = predictions
         self.all_tap_ins = list(predictions.values())
         
-        # Load station name -> complex ID mapping from stop_to_complex.csv
+        # Load station name -> complex ID mapping from StopComplex.csv
         self.station_name_to_id = {}
         try:
-            mapping_df = pd.read_csv("data/processed/stop_to_complex.csv")
+            mapping_df = pd.read_csv("data/processed/StopComplex.csv")
             for _, row in mapping_df.iterrows():
                 name = str(row['Stop Name']).strip()
                 complex_id = int(row['Complex ID'])
