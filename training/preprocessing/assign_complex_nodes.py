@@ -1,5 +1,4 @@
 """
-Assign ComplexNodes during training
 Creates a mapping from complex IDs to node indices for GNN input.
 """
 import pandas as pd
