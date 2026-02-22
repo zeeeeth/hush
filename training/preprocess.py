@@ -11,7 +11,7 @@ Split logic:
 
 Outputs (in data/processed/):
   - stats.csv           : per-station mean & std (from train only)
-  - ComplexNodes.csv   : station_complex_id → node_id mapping
+  - ComplexNodes.csv   : station_complex_id -> node_id mapping
   - ComplexEdges.csv   : graph edges (unchanged, just validated)
   - train.parquet       : preprocessed training data
   - val.parquet         : preprocessed validation data
@@ -38,13 +38,21 @@ def load_year(year: int) -> pd.DataFrame:
         print(f"  WARNING: {path} not found, skipping")
         return pd.DataFrame()
 
-    df = pd.read_csv(
+    chunk_size = 200000  # Adjust as needed for your system
+    total_rows = 0
+    chunks = []
+    for chunk in pd.read_csv(
         path,
         parse_dates=["transit_timestamp"],
         date_format="%m/%d/%Y %I:%M:%S %p",
-        low_memory=False,
-    )
-    print(f"  {year}.csv: {len(df):>12,} rows")
+        dtype={"station_complex_id": str, "ridership": str, "transfers": str},
+        low_memory=True,
+        chunksize=chunk_size,
+    ):
+        chunks.append(chunk)
+        total_rows += len(chunk)
+    df = pd.concat(chunks, ignore_index=True)
+    print(f"  {year}.csv: {total_rows:>12,} rows (loaded in chunks)")
     return df
 
 
@@ -59,6 +67,15 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
         df["ridership"] = df["ridership"].str.replace(",", "").astype(int)
     else:
         df["ridership"] = df["ridership"].astype(int)
+
+    # Clean transfers (convert to int, fill missing with 0)
+    if "transfers" in df.columns:
+        # Remove commas, fill missing, convert to int
+        if df["transfers"].dtype == object:
+            df["transfers"] = df["transfers"].str.replace(",", "")
+        df["transfers"] = df["transfers"].fillna(0)
+        # If any non-numeric, coerce to NaN then fill with 0
+        df["transfers"] = pd.to_numeric(df["transfers"], errors="coerce").fillna(0).astype(int)
 
     # Convert station_complex_id to int
     df["station_complex_id"] = df["station_complex_id"].astype(int)
@@ -119,7 +136,7 @@ def compute_stats(train_df: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_node_mapping(train_df: pd.DataFrame) -> dict:
-    """Build station_complex_id → node_id mapping from training data."""
+    """Build station_complex_id -> node_id mapping from training data."""
     all_stations = sorted(train_df["station_complex_id"].unique())
     mapping = {station: idx for idx, station in enumerate(all_stations)}
     return mapping
@@ -170,26 +187,23 @@ def main():
     # ------------------------------------------------------------------
     print("\n1. Loading yearly CSVs...")
     dfs = []
+    total_raw_rows = 0
     for year in range(2020, 2025):
         year_df = load_year(year)
         if len(year_df) > 0:
+            print(f"  Cleaning {year}...")
+            year_df = clean(year_df)
             dfs.append(year_df)
+            total_raw_rows += len(year_df)
 
     if not dfs:
         print("ERROR: No data files found. Place 2020.csv–2025.csv in data/raw/")
         sys.exit(1)
 
     df = pd.concat(dfs, ignore_index=True)
-    print(f"  Total raw rows: {len(df):,}")
-
-    # ------------------------------------------------------------------
-    # 2. Clean
-    # ------------------------------------------------------------------
-    print("\n2. Cleaning data...")
-    df = clean(df)
-    print(f"  After cleaning: {len(df):,} rows")
+    print(f"  Total cleaned rows: {len(df):,}")
     print(f"  Unique stations: {df['station_complex_id'].nunique()}")
-    print(f"  Date range: {df['transit_timestamp'].min()} → {df['transit_timestamp'].max()}")
+    print(f"  Date range: {df['transit_timestamp'].min()} -> {df['transit_timestamp'].max()}")
 
     # ------------------------------------------------------------------
     # 3. Split
@@ -218,7 +232,7 @@ def main():
         {"complex_id": k, "node_id": v} for k, v in ComplexNodes.items()
     ])
     mapping_df.to_csv(os.path.join(PROC_DIR, "ComplexNodes.csv"), index=False)
-    print(f"  {len(ComplexNodes)} stations → node IDs 0–{len(ComplexNodes)-1}")
+    print(f"  {len(ComplexNodes)} stations -> node IDs 0–{len(ComplexNodes)-1}")
 
     # Validate edges
     validate_edges(ComplexNodes)
@@ -232,7 +246,7 @@ def main():
         processed = add_features(split_df, stats, ComplexNodes)
         out_path = os.path.join(PROC_DIR, f"{name}.parquet")
         processed.to_parquet(out_path, index=False)
-        print(f"  {name}: {len(processed):,} rows → {out_path}")
+        print(f"  {name}: {len(processed):,} rows -> {out_path}")
 
     # ------------------------------------------------------------------
     # Summary
@@ -242,11 +256,11 @@ def main():
     print("=" * 60)
     print(f"\nOutputs in {PROC_DIR}/:")
     print("  stats.csv          - normalization stats (train only)")
-    print("  ComplexNodes.csv  - station → node ID mapping")
+    print("  ComplexNodes.csv   - station -> node ID mapping")
     print("  train.parquet      - training data")
     print("  val.parquet        - validation data")
     print("  test.parquet       - test data")
-    print("\nNext: python training/train.py")
+    print("\nNext: python training/train.ipynb")
 
 
 if __name__ == "__main__":

@@ -36,7 +36,7 @@ def SearchResults(search_clicked, origin_name, destination_name, stations, coord
                     <span class="prediction-icon">🔮</span>
                     <div class="prediction-text">
                         <div class="prediction-label">AI Congestion Forecast</div>
-                        <div class="prediction-time">{now.strftime('%H:%M')} → {one_hour_later.strftime('%H:%M')}</div>
+                        <div class="prediction-time">{now.strftime('%H:%M')} -> {one_hour_later.strftime('%H:%M')}</div>
                         <div class="prediction-hint">Scores reflect predicted crowding for the next hour</div>
                     </div>
                 </div>

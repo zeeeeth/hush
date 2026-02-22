@@ -80,7 +80,7 @@ class GNNPredictor:
             current_time: Current timestamp (defaults to now)
         
         Returns:
-            Dict mapping station_complex_id → predicted_tap_ins
+            Dict mapping station_complex_id -> predicted_tap_ins
         """
         if current_time is None:
             current_time = datetime.now()

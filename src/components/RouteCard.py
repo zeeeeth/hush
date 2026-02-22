@@ -16,9 +16,9 @@ def render_route_card(route: dict, index: int, is_best: bool = False):
         if step["type"] == "transit":
             line = step["line"]
             color = step.get("color", "#888888")
-            steps_html += f'<div class="step-row"><span class="line-badge" style="background-color: {color};">{line}</span><span class="step-details">{step["departure"]} → {step["arrival"]}</span><span class="step-meta">{step["num_stops"]} stops · {step["duration_min"]}m</span></div>'
+            steps_html += f'<div class="step-row"><span class="line-badge" style="background-color: {color};">{line}</span><span class="step-details">{step["departure"]} -> {step["arrival"]}</span><span class="step-meta">{step["num_stops"]} stops · {step["duration_min"]}m</span></div>'
         elif step["type"] == "walk":
-            steps_html += f'<div class="step-row"><span class="walk-icon">→</span><span class="step-details">Walk {step["distance_m"]}m</span><span class="step-meta">{step["duration_min"]}m</span></div>'
+            steps_html += f'<div class="step-row"><span class="walk-icon">-></span><span class="step-details">Walk {step["distance_m"]}m</span><span class="step-meta">{step["duration_min"]}m</span></div>'
 
     if quiet_score is not None:
         if quiet_score >= 7:

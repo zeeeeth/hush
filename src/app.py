@@ -18,6 +18,7 @@ from components.MapComponent import MapComponent
 from components.Header import Header
 from components.SearchInputs import SearchInputs
 from components.SearchResults import SearchResults
+from components.RouteCard import render_route_card
 
 # Add src directory to Python path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__)))
@@ -366,13 +367,6 @@ def get_routes(origin_id: str, destination_id: str, coords: dict):
         
     except requests.RequestException as e:
         return None, f"Network error: {e}"
-
-# ============================================================================
-# UI COMPONENTS
-# ============================================================================
-
-from components.RouteCard import render_route_card
-
 
 # ============================================================================
 # MAIN APP

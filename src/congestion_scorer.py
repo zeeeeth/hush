@@ -16,7 +16,7 @@ class CongestionScorer:
         Initialize scorer with GNN predictions.
         
         Args:
-            predictions: Dict mapping station_complex_id → predicted_tap_ins
+            predictions: Dict mapping station_complex_id -> predicted_tap_ins
         """
         self.predictions = predictions
         self.all_tap_ins = list(predictions.values())
