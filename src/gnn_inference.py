@@ -8,22 +8,44 @@ import torch.nn as nn
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from torch_geometric.nn import GCNConv
-
-
-class GNN(nn.Module):
-    """GNN model architecture (must match training)."""
-    def __init__(self, in_dim, hidden_dim):
+from torch_geometric.nn import SAGEConv
+class DirSAGEEmbRes(nn.Module):
+    """
+    Directed SAGE with:
+      - learnable node embedding
+      - 2-layer message passing
+      - residual connection to reduce over-smoothing
+    """
+    def __init__(self, num_nodes: int, in_dim: int, hidden_dim: int, emb_dim: int = 16):
         super().__init__()
-        self.conv1 = GCNConv(in_dim, hidden_dim)
-        self.conv2 = GCNConv(hidden_dim, hidden_dim)
-        self.mlp = nn.Linear(hidden_dim, 1)
+        self.node_emb = nn.Embedding(num_nodes, emb_dim)
 
-    def forward(self, x, edge_index):
-        h = torch.relu(self.conv1(x, edge_index))
-        h = torch.relu(self.conv2(h, edge_index))
-        return self.mlp(h).squeeze()
+        d0 = in_dim + emb_dim
 
+        # incoming edges
+        self.in1 = SAGEConv(d0, hidden_dim)
+        self.in2 = SAGEConv(hidden_dim, hidden_dim)
+
+        # outgoing edges (reversed)
+        self.out1 = SAGEConv(d0, hidden_dim)
+        self.out2 = SAGEConv(hidden_dim, hidden_dim)
+
+        self.lin = nn.Linear(2 * hidden_dim, 1)
+
+    def forward(self, x, edge_in, edge_out):
+        node_ids = torch.arange(x.size(0), device=x.device)
+        x = torch.cat([x, self.node_emb(node_ids)], dim=1)
+
+        h_in1 = torch.relu(self.in1(x, edge_in))
+        h_in2 = torch.relu(self.in2(h_in1, edge_in))
+        h_in  = h_in2 + h_in1  # residual
+
+        h_out1 = torch.relu(self.out1(x, edge_out))
+        h_out2 = torch.relu(self.out2(h_out1, edge_out))
+        h_out  = h_out2 + h_out1  # residual
+
+        h = torch.cat([h_in, h_out], dim=-1)
+        return self.lin(h).squeeze(-1)
 
 class GNNPredictor:
     """Wrapper for GNN inference."""
@@ -32,11 +54,6 @@ class GNNPredictor:
                  ComplexNodes_path="data/processed/ComplexNodes.csv",
                  edges_path="data/processed/ComplexEdges.csv"):
         """Initialize predictor with model and mappings."""
-        
-        # Load model
-        self.model = GNN(in_dim=3, hidden_dim=64)
-        self.model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
-        self.model.eval()
         
         # Load station mappings
         self.ComplexNodes = pd.read_csv(ComplexNodes_path)
@@ -57,19 +74,36 @@ class GNNPredictor:
         ))
         
         # Load edges
+                # Use mapping size as num_nodes (safer than max+1)
+        self.num_nodes = len(self.ComplexNodes_dict)
+
+        # Load edges (DIRECTED) and build both directions for dual-pass
         edges_df = pd.read_csv(edges_path)
-        edge_list = []
+
+        edge_in = []   # from -> to
+        edge_out = []  # to -> from (reverse of edge_in)
+
         for _, row in edges_df.iterrows():
             start = row['from_complex_id']
             end = row['to_complex_id']
             if start in self.ComplexNodes_dict and end in self.ComplexNodes_dict:
-                start_node = self.ComplexNodes_dict[start]
-                end_node = self.ComplexNodes_dict[end]
-                edge_list.append([start_node, end_node])
-                edge_list.append([end_node, start_node])  # Undirected
-        
-        self.edge_tensor = torch.tensor(edge_list, dtype=torch.long).T
-        self.num_nodes = int(self.ComplexNodes['node_id'].max() + 1)
+                u = self.ComplexNodes_dict[start]
+                v = self.ComplexNodes_dict[end]
+                edge_in.append([u, v])
+                edge_out.append([v, u])
+
+        # Add self-loops to both edge sets (helps stability)
+        for i in range(self.num_nodes):
+            edge_in.append([i, i])
+            edge_out.append([i, i])
+
+        self.edge_in = torch.tensor(edge_in, dtype=torch.long).T
+        self.edge_out = torch.tensor(edge_out, dtype=torch.long).T
+
+        # Load model (must match training architecture + feature dim)
+        self.model = DirSAGEEmbRes(num_nodes=self.num_nodes, in_dim=5, hidden_dim=64, emb_dim=16)
+        self.model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+        self.model.eval()
     
     def predict(self, current_ridership_df: pd.DataFrame, current_time: datetime = None):
         """
@@ -85,12 +119,16 @@ class GNNPredictor:
         if current_time is None:
             current_time = datetime.now()
         
-        # Prepare input features
-        X = torch.zeros(self.num_nodes, 3)
-        
+        # Prepare input features (ridership_norm, sin/cos hour, sin/cos dow)
+        X = torch.zeros(self.num_nodes, 5)
+
         hour = current_time.hour
         sin_hour = np.sin(2 * np.pi * hour / 24)
         cos_hour = np.cos(2 * np.pi * hour / 24)
+
+        dow = current_time.weekday()  # 0=Mon ... 6=Sun
+        sin_dow = np.sin(2 * np.pi * dow / 7)
+        cos_dow = np.cos(2 * np.pi * dow / 7)
         
         # Fill in features for stations with data
         for _, row in current_ridership_df.iterrows():
@@ -112,10 +150,12 @@ class GNNPredictor:
             X[node_id, 0] = ridership_norm
             X[node_id, 1] = sin_hour
             X[node_id, 2] = cos_hour
+            X[node_id, 3] = sin_dow
+            X[node_id, 4] = cos_dow
         
         # Run inference
         with torch.no_grad():
-            y_pred = self.model(X, self.edge_tensor)
+            y_pred = self.model(X, self.edge_in, self.edge_out)
         
         # Denormalize predictions and convert to dict
         predictions = {}

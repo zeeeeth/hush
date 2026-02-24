@@ -1,21 +1,23 @@
 """
 Preprocessing pipeline for GNN training.
-
-Loads yearly CSVs (2020.csv–2024.csv), applies the train/val/test split,
-computes normalization stats from train data only, and saves processed
-artifacts used by train.py and evaluate.py.
+1. Load, clean and aggregate yearly CSVs (2020.csv–2024.csv)
+2. Apply train/val/test split
+3. Compute normalization stats from train data only
+4. Build station_complex_id -> node_id mapping from train data
+5. Add features and save splits
 
 Split logic:
-  - 2020–2022: 100% train
-  - 2023–2024: stratified random split to achieve 75% train, 5% val, 20% test overall
+  - 2020–2022: train
+  - 2023     : val
+  - 2024     : test
 
 Outputs (in data/processed/):
   - stats.csv           : per-station mean & std (from train only)
-  - ComplexNodes.csv   : station_complex_id -> node_id mapping
-  - ComplexEdges.csv   : graph edges (unchanged, just validated)
-  - train.parquet       : preprocessed training data
-  - val.parquet         : preprocessed validation data
-  - test.parquet        : preprocessed test data
+  - ComplexNodes.csv    : station_complex_id -> node_id mapping
+  - ComplexEdges.csv    : graph edges (unchanged, validation only)
+  - train.parquet       : training data
+  - val.parquet         : validation data
+  - test.parquet        : test data
 """
 
 import os
@@ -27,18 +29,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RAW_DIR = os.path.join(ROOT, "data", "raw")
 PROC_DIR = os.path.join(ROOT, "data", "processed")
 EDGES_PATH = os.path.join(PROC_DIR, "ComplexEdges.csv")
-
 YEAR_FILES = [f"{y}.csv" for y in range(2020, 2025)]
 
-
+# Load a single year's CSV in chunks to handle large files without running out of memory
 def load_year(year: int) -> pd.DataFrame:
-    """Load a single year's CSV."""
     path = os.path.join(RAW_DIR, f"{year}.csv")
     if not os.path.exists(path):
         print(f"  WARNING: {path} not found, skipping")
         return pd.DataFrame()
 
-    chunk_size = 200000  # Adjust as needed for your system
     total_rows = 0
     chunks = []
     for chunk in pd.read_csv(
@@ -47,34 +46,33 @@ def load_year(year: int) -> pd.DataFrame:
         date_format="%m/%d/%Y %I:%M:%S %p",
         dtype={"station_complex_id": str, "ridership": str, "transfers": str},
         low_memory=True,
-        chunksize=chunk_size,
+        chunksize=200000,
     ):
         chunks.append(chunk)
         total_rows += len(chunk)
     df = pd.concat(chunks, ignore_index=True)
-    print(f"  {year}.csv: {total_rows:>12,} rows (loaded in chunks)")
+    print(f"  {year}.csv: {total_rows:>12,} rows")
     return df
 
-
+# Clean and aggregate ridership data
 def clean(df: pd.DataFrame) -> pd.DataFrame:
-    """Clean and aggregate ridership data."""
     # Keep subway only
     if "transit_mode" in df.columns:
         df = df[df["transit_mode"] == "subway"].copy()
 
-    # Clean ridership (handle commas)
+    # Clean ridership: handle commas, convert to int
     if df["ridership"].dtype == object:
         df["ridership"] = df["ridership"].str.replace(",", "").astype(int)
     else:
         df["ridership"] = df["ridership"].astype(int)
 
-    # Clean transfers (convert to int, fill missing with 0)
+    # Clean transfers: convert to int, fill missing with 0
     if "transfers" in df.columns:
         # Remove commas, fill missing, convert to int
         if df["transfers"].dtype == object:
             df["transfers"] = df["transfers"].str.replace(",", "")
         df["transfers"] = df["transfers"].fillna(0)
-        # If any non-numeric, coerce to NaN then fill with 0
+        # Coerce to numeric, set errors to NaN, fill NaN with 0
         df["transfers"] = pd.to_numeric(df["transfers"], errors="coerce").fillna(0).astype(int)
 
     # Convert station_complex_id to int
@@ -89,42 +87,16 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     df = df.sort_values(["transit_timestamp", "station_complex_id"]).reset_index(drop=True)
     return df
 
-
+# Split data by year: 2020–2022 train, 2023 val, 2024 test
 def split_data(df: pd.DataFrame):
-    """
-    Split into train/val/test.
-
-    2020–2022: all train
-    2023–2024: stratified random split to achieve 75% train, 5% val, 20% test overall
-    """
     year = df["transit_timestamp"].dt.year
-    is_early_year = year <= 2022
-    is_late_year = (year >= 2023) & (year <= 2024)
-
-    # 2020-2022: all train
-    train_mask = is_early_year
-
-    # 2023-2024: stratified random split
-    late_df = df[is_late_year].copy()
-    n = len(late_df)
-    n_train = int(n * 0.375)  # 3/8 of late years = 75% overall
-    n_val = int(n * 0.025)    # 1/40 of late years = 5% overall
-    n_test = n - n_train - n_val
-
-    late_df = late_df.sample(frac=1, random_state=42).reset_index(drop=True)
-    train_late = late_df.iloc[:n_train]
-    val_late = late_df.iloc[n_train:n_train+n_val]
-    test_late = late_df.iloc[n_train+n_val:]
-
-    train_df = pd.concat([df[train_mask], train_late], ignore_index=True)
-    val_df = val_late
-    test_df = test_late
-
+    train_df = df[year <= 2022].copy()
+    val_df   = df[year == 2023].copy()
+    test_df  = df[year == 2024].copy()
     return train_df, val_df, test_df
 
-
+# Compute per-station mean and std from training data, for normalization
 def compute_stats(train_df: pd.DataFrame) -> pd.DataFrame:
-    """Compute per-station mean and std from training data only."""
     stats = (
         train_df.groupby("station_complex_id")["ridership"]
         .agg(["mean", "std"])
@@ -134,16 +106,15 @@ def compute_stats(train_df: pd.DataFrame) -> pd.DataFrame:
     stats["std"] = stats["std"].fillna(1.0)
     return stats
 
-
+# Build station_complex_id -> node_id mapping from training data
 def build_node_mapping(train_df: pd.DataFrame) -> dict:
-    """Build station_complex_id -> node_id mapping from training data."""
     all_stations = sorted(train_df["station_complex_id"].unique())
     mapping = {station: idx for idx, station in enumerate(all_stations)}
     return mapping
 
-
+# Add features: normalized ridership, time features, and node_id. Filter to stations in ComplexNodes.
+# Hour and day of week are cyclical -> sin/cos encoding to help model see that ends wrap around.
 def add_features(df: pd.DataFrame, stats: pd.DataFrame, ComplexNodes: dict) -> pd.DataFrame:
-    """Add normalized ridership, time features, and node_id."""
     # Merge stats
     df = df.merge(stats, on="station_complex_id", how="left")
 
@@ -163,9 +134,13 @@ def add_features(df: pd.DataFrame, stats: pd.DataFrame, ComplexNodes: dict) -> p
     df = df[df["station_complex_id"].isin(ComplexNodes)].copy()
     df["node_id"] = df["station_complex_id"].map(ComplexNodes)
 
+    df["dow"] = df["transit_timestamp"].dt.dayofweek
+    df["sin_dow"] = np.sin(2 * np.pi * df["dow"] / 7)
+    df["cos_dow"] = np.cos(2 * np.pi * df["dow"] / 7)
+
     return df
 
-
+# Validate that edges only connect stations that are in the ComplexNodes mapping
 def validate_edges(ComplexNodes: dict):
     """Check how many edges are valid for the node mapping."""
     edges = pd.read_csv(EDGES_PATH)
@@ -182,10 +157,8 @@ def main():
     print("PREPROCESSING PIPELINE")
     print("=" * 60)
 
-    # ------------------------------------------------------------------
-    # 1. Load all years
-    # ------------------------------------------------------------------
-    print("\n1. Loading yearly CSVs...")
+    # 1. Load, clean and aggregate yearly CSVs
+    print("\n1. Loading, cleaning and aggregating yearly CSVs...")
     dfs = []
     total_raw_rows = 0
     for year in range(2020, 2025):
@@ -197,7 +170,7 @@ def main():
             total_raw_rows += len(year_df)
 
     if not dfs:
-        print("ERROR: No data files found. Place 2020.csv–2025.csv in data/raw/")
+        print("ERROR: No data files found. Place 2020.csv–2024.csv in data/raw/")
         sys.exit(1)
 
     df = pd.concat(dfs, ignore_index=True)
@@ -205,28 +178,22 @@ def main():
     print(f"  Unique stations: {df['station_complex_id'].nunique()}")
     print(f"  Date range: {df['transit_timestamp'].min()} -> {df['transit_timestamp'].max()}")
 
-    # ------------------------------------------------------------------
-    # 3. Split
-    # ------------------------------------------------------------------
-    print("\n3. Splitting data...")
+    # 2. Split data into train/val/test
+    print("\n2. Splitting data...")
     train_df, val_df, test_df = split_data(df)
     total = len(train_df) + len(val_df) + len(test_df)
     print(f"  Train: {len(train_df):>12,} rows ({len(train_df)/total*100:.1f}%)")
     print(f"  Val:   {len(val_df):>12,} rows ({len(val_df)/total*100:.1f}%)")
     print(f"  Test:  {len(test_df):>12,} rows ({len(test_df)/total*100:.1f}%)")
 
-    # ------------------------------------------------------------------
-    # 4. Compute stats from train only
-    # ------------------------------------------------------------------
-    print("\n4. Computing normalization stats (train only)...")
+    # 3. Compute stats from training data only to avoid data leakage
+    print("\n3. Computing normalization stats...")
     stats = compute_stats(train_df)
     stats.to_csv(os.path.join(PROC_DIR, "stats.csv"), index=False)
     print(f"  Saved stats for {len(stats)} stations")
 
-    # ------------------------------------------------------------------
-    # 5. Build node mapping from train
-    # ------------------------------------------------------------------
-    print("\n5. Building node mapping...")
+    # 4. Build node mapping from training data to avoid unseen stations in val/test
+    print("\n4. Building node mapping...")
     ComplexNodes = build_node_mapping(train_df)
     mapping_df = pd.DataFrame([
         {"complex_id": k, "node_id": v} for k, v in ComplexNodes.items()
@@ -237,31 +204,25 @@ def main():
     # Validate edges
     validate_edges(ComplexNodes)
 
-    # ------------------------------------------------------------------
-    # 6. Add features and save splits
-    # ------------------------------------------------------------------
-    print("\n6. Adding features and saving splits...")
-
+    # 5. Add features and save splits
+    print("\n5. Adding features and saving splits...")
     for name, split_df in [("train", train_df), ("val", val_df), ("test", test_df)]:
         processed = add_features(split_df, stats, ComplexNodes)
         out_path = os.path.join(PROC_DIR, f"{name}.parquet")
         processed.to_parquet(out_path, index=False)
         print(f"  {name}: {len(processed):,} rows -> {out_path}")
 
-    # ------------------------------------------------------------------
     # Summary
-    # ------------------------------------------------------------------
     print("\n" + "=" * 60)
     print("DONE")
     print("=" * 60)
     print(f"\nOutputs in {PROC_DIR}/:")
-    print("  stats.csv          - normalization stats (train only)")
+    print("  stats.csv          - normalization stats")
     print("  ComplexNodes.csv   - station -> node ID mapping")
     print("  train.parquet      - training data")
     print("  val.parquet        - validation data")
     print("  test.parquet       - test data")
-    print("\nNext: python training/train.ipynb")
-
+    print("\nData is ready for GNN training")
 
 if __name__ == "__main__":
     main()

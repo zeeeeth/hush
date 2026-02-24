@@ -49,7 +49,7 @@ class CongestionScorer:
         tap_ins = self.predictions[station_complex_id]
         
         # Percentile among all stations
-        percentile = percentileofscore(self.all_tap_ins, tap_ins) / 100.0
+        percentile = percentileofscore(self.all_tap_ins, tap_ins, kind="mean") / 100.0
         
         return percentile
     
@@ -95,7 +95,7 @@ class CongestionScorer:
         route_congestion = np.mean(congestion_scores)
         
         # Convert to quiet score (invert: high congestion = low quiet score)
-        quiet_score = int((1.0 - route_congestion) * 10)
+        quiet_score = int(np.round((1.0 - route_congestion) * 10))
         
         # Clamp to 0-10
         return max(0, min(10, quiet_score))
