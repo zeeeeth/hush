@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from .gnn_loader import calculate_route_quiet_scores
 from .station_data import get_station_coords
+from .intermediate_lookup import load_gtfs_lookup, get_intermediate_stops
 
 load_dotenv()
 GOOGLE_MAPS_API_KEY = os.getenv("ROUTES_API_KEY")
@@ -54,6 +55,9 @@ def get_routes(origin_id: str, destination_id: str, coords: dict):
         if not routes:
             return None, "No subway routes found"
         
+        # Load GTFS lookup once (cached)
+        gtfs = load_gtfs_lookup()
+        
         # Process routes
         processed_routes = []
         
@@ -81,6 +85,9 @@ def get_routes(origin_id: str, destination_id: str, coords: dict):
                         line_name = line.get("nameShort") or line.get("name", "?")
                         line_color = line.get("color", "#888888")
                         num_stops = transit.get("stopCount", "?")
+                        intermediate_stops = get_intermediate_stops(
+                            gtfs, line_name, departure, arrival
+                        )
                         
                         raw_steps.append({
                             "type": "transit",
@@ -88,6 +95,7 @@ def get_routes(origin_id: str, destination_id: str, coords: dict):
                             "color": line_color,
                             "departure": departure,
                             "arrival": arrival,
+                            "intermediate_stops": intermediate_stops,
                             "num_stops": num_stops,
                             "duration_min": dur_sec // 60
                         })

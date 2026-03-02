@@ -69,22 +69,20 @@ class CongestionScorer:
             if step['type'] != 'transit':
                 continue
             
-            # Extract station names from departure/arrival
-            departure_name = step.get('departure', '').strip()
-            arrival_name = step.get('arrival', '').strip()
+            # Score all stops, departure + intermediate + arrival
+            all_stop_names = (
+                [step.get('departure', '').strip()]
+                + [s.strip() for s in step.get('intermediate_stops', [])]
+                + [step.get('arrival', '').strip()]
+            )
             
-            # Try to find matching station complex IDs
-            dep_id = self._find_station_id(departure_name)
-            arr_id = self._find_station_id(arrival_name)
-            
-            # Get congestion scores for both stations
-            if dep_id is not None:
-                dep_congestion = self.get_station_congestion_score(dep_id)
-                congestion_scores.append(dep_congestion)
-            
-            if arr_id is not None:
-                arr_congestion = self.get_station_congestion_score(arr_id)
-                congestion_scores.append(arr_congestion)
+            for stop_name in all_stop_names:
+                if not stop_name:
+                    continue
+                station_id = self._find_station_id(stop_name)
+                if station_id is not None:
+                    congestion = self.get_station_congestion_score(station_id)
+                    congestion_scores.append(congestion)
         
         if not congestion_scores:
             # Fallback: use median congestion
@@ -94,7 +92,7 @@ class CongestionScorer:
         # Average congestion across route
         route_congestion = np.mean(congestion_scores)
         
-        # Convert to quiet score (invert: high congestion = low quiet score)
+        # Convert to quiet score (inverse of congestion)
         quiet_score = int(np.round((1.0 - route_congestion) * 10))
         
         # Clamp to 0-10
@@ -135,39 +133,3 @@ class CongestionScorer:
                 return complex_id
         
         return None
-    
-    def calculate_route_quiet_score_with_stations(self, station_complex_ids: list) -> int:
-        """
-        Calculate quiet score given explicit list of station complex IDs.
-        Uses Method 5: Hybrid Percentile + Decay.
-        
-        Args:
-            station_complex_ids: List of station complex IDs in order
-        
-        Returns:
-            Quiet score (0-10)
-        """
-        if not station_complex_ids:
-            return 5
-        
-        congestion_contributions = []
-        
-        for i, station_id in enumerate(station_complex_ids):
-            # Station congestion
-            station_congestion = self.get_station_congestion_score(station_id)
-            
-            # Distance decay (exponential)
-            # More recent stations in route contribute more
-            stops_from_start = i
-            decay = np.exp(-stops_from_start / 6)  # Avg journey ~6 stops
-            
-            contribution = station_congestion * decay
-            congestion_contributions.append(contribution)
-        
-        # Weighted average
-        route_congestion = np.mean(congestion_contributions)
-        
-        # Convert to quiet score (invert)
-        quiet_score = int((1.0 - route_congestion) * 10)
-        
-        return max(0, min(10, quiet_score))

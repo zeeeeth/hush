@@ -5,8 +5,6 @@ Glassmorphism design with map overlay.
 """
 
 import streamlit as st
-import os
-from dotenv import load_dotenv
 from linear_css import inject_custom_css
 from Components.MapComponent import MapComponent
 from Components.Header import Header

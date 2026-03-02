@@ -1,0 +1,9 @@
+model_path,best_val_loss,epochs,patience,lr,hidden_dim,emb_dim,loss
+c:\Users\setho\PersonalProjects\hush\models\model_6.pt,0.042099295954136084,15,4,0.0001,128,32,huber
+c:\Users\setho\PersonalProjects\hush\models\model_2.pt,0.046863588777126035,15,4,0.0001,64,16,huber
+c:\Users\setho\PersonalProjects\hush\models\model_8.pt,0.04747923862769097,15,4,0.0003,128,32,huber
+c:\Users\setho\PersonalProjects\hush\models\model_4.pt,0.04891566990684232,15,4,0.0003,64,16,huber
+c:\Users\setho\PersonalProjects\hush\models\model_5.pt,0.09792970422180164,15,4,0.0001,128,32,mse
+c:\Users\setho\PersonalProjects\hush\models\model_1.pt,0.10403407426629473,15,4,0.0001,64,16,mse
+c:\Users\setho\PersonalProjects\hush\models\model_3.pt,0.10616496832161994,15,4,0.0003,64,16,mse
+c:\Users\setho\PersonalProjects\hush\models\model_7.pt,0.10641809416245901,15,4,0.0003,128,32,mse

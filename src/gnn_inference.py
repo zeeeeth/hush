@@ -50,7 +50,7 @@ class DirSAGEEmbRes(nn.Module):
 class GNNPredictor:
     """Wrapper for GNN inference."""
     
-    def __init__(self, model_path="models/model.pt", stats_path="data/processed/stats.csv", 
+    def __init__(self, model_path="models/best_model.pt", stats_path="data/processed/stats.csv", 
                  ComplexNodes_path="data/processed/ComplexNodes.csv",
                  edges_path="data/processed/ComplexEdges.csv"):
         """Initialize predictor with model and mappings."""

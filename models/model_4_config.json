@@ -1,0 +1,10 @@
+{
+  "model_path": "c:\\Users\\setho\\PersonalProjects\\hush\\models\\model_4.pt",
+  "best_val_loss": 0.04891566990684232,
+  "epochs": 15,
+  "patience": 4,
+  "lr": 0.0003,
+  "hidden_dim": 64,
+  "emb_dim": 16,
+  "loss": "huber"
+}
