@@ -1,7 +1,6 @@
 """
 MTA Sensory-Safe Router
 A smart routing app for NYC subway with quiet score ratings.
-Glassmorphism design with map overlay.
 """
 
 import streamlit as st
