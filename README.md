@@ -46,6 +46,6 @@ Open **http://localhost:8501** in your browser.
 
 ## Data
 
-- **MTA Hourly Ridership (2020–2025)** — tap-in counts per station per hour
+- **MTA Hourly Ridership (2020–2024)** — tap-in counts per station per hour
 - **GTFS Static** — stop coordinates, trips, stop times
 - **Processed** — station complex graph edges, node mappings, normalization stats
