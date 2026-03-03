@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import pandas as pd
 import numpy as np
+import json
 from datetime import datetime
 from torch_geometric.nn import SAGEConv
 class DirSAGEEmbRes(nn.Module):
@@ -50,7 +51,8 @@ class DirSAGEEmbRes(nn.Module):
 class GNNPredictor:
     """Wrapper for GNN inference."""
     
-    def __init__(self, model_path="models/best_model.pt", stats_path="data/processed/stats.csv", 
+    def __init__(self, model_path="models/best_model.pt", model_config_path="models/best_model_config.json", 
+                 stats_path="data/processed/stats.csv", 
                  ComplexNodes_path="data/processed/ComplexNodes.csv",
                  edges_path="data/processed/ComplexEdges.csv"):
         """Initialize predictor with model and mappings."""
@@ -100,8 +102,12 @@ class GNNPredictor:
         self.edge_in = torch.tensor(edge_in, dtype=torch.long).T
         self.edge_out = torch.tensor(edge_out, dtype=torch.long).T
 
-        # Load model (must match training architecture + feature dim)
-        self.model = DirSAGEEmbRes(num_nodes=self.num_nodes, in_dim=5, hidden_dim=64, emb_dim=16)
+        # Load model config and instantiate with matching architecture
+        with open(model_config_path) as f:
+            config = json.load(f)
+        hidden_dim = config.get("hidden_dim", 128)
+        emb_dim = config.get("emb_dim", 32)
+        self.model = DirSAGEEmbRes(num_nodes=self.num_nodes, in_dim=5, hidden_dim=hidden_dim, emb_dim=emb_dim)
         self.model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
         self.model.eval()
     
