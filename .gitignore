@@ -1,8 +1,9 @@
-.env
-venv
+backend/.env
+.venv/
 __pycache__/
 .vscode/
 data/raw
 data/processed/test.parquet
 data/processed/train.parquet
 data/processed/val.parquet
+frontend/node_modules

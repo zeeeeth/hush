@@ -3,16 +3,18 @@ Loads pre-built stop sequences from data/processed/StopSequences.json to resolve
 intermediate stops between a departure and arrival on a given subway line.
 Run training/preprocessing/build_gtfs_sequences.py once to generate the JSON.
 """
+
 import re
 import json
-import streamlit as st
+from functools import lru_cache
+
 
 def _normalize(name: str) -> str:
     """Lowercase, strip, collapse whitespace, remove hyphens."""
     return re.sub(r"[\s\-]+", " ", name.lower().strip())
 
 
-@st.cache_resource(show_spinner=False)
+@lru_cache(maxsize=1)
 def load_gtfs_lookup() -> dict[str, list[list[str]]]:
     """
     Load and return the pre-built GTFS sequences lookup: { route_id: [ [stop_name, stop_name, ...], ... ] }
@@ -63,7 +65,7 @@ def get_intermediate_stops(
         if dep_idx >= arr_idx:
             continue
 
-        intermediates = seq[dep_idx + 1: arr_idx]
+        intermediates = seq[dep_idx + 1 : arr_idx]
 
         # Prefer longer intermediate list (more specific match)
         if len(intermediates) > len(best):
