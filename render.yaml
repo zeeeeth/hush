@@ -1,0 +1,24 @@
+services:
+  # ── Backend API ──────────────────────────────────────────────────────────────
+  - type: web
+    name: hush-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: standard
+    envVars:
+      - key: ROUTES_API_KEY
+        sync: false   # set this manually in the Render dashboard
+    autoDeploy: true
+
+  # ── Frontend Static Site ─────────────────────────────────────────────────────
+  - type: web
+    name: hush-frontend
+    runtime: static
+    buildCommand: npm run build
+    publishDir: frontend/dist
+    rootDir: frontend
+    envVars:
+      - key: VITE_API_URL
+        sync: false   # set to https://hush-backend.onrender.com/api in dashboard
+    autoDeploy: true

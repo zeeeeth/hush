@@ -1,0 +1,8 @@
+# Exclude large training data from Docker build context
+data/raw/
+.venv/
+frontend/node_modules/
+frontend/dist/
+**/__pycache__/
+**/*.pyc
+.git/
