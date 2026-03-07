@@ -34,7 +34,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://hush-frontend.onrender.com",
+        "https://hush-d5dr.onrender.com",
     ],
     allow_methods=["GET"],
     allow_headers=["*"],
