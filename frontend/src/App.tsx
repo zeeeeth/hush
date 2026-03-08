@@ -83,12 +83,12 @@ function App() {
     staleTime: Infinity,
   });
 
-  /*┌─────────────────────┬──────────────────────────────┐
-    │  <aside.sidebar>    │  <main>                      │
-    │  <Header />         │  <MapView />                 │
-    │  <SearchInputs />   │                              │
-    │  <SearchResults />  │                              │
-    └─────────────────────┴──────────────────────────────┘ */
+  /*┌─────────────────────┬───────────────┐
+    │  <aside.sidebar>    │  <main>       │
+    │  <Header />         │  <MapView />  │
+    │  <SearchInputs />   │               │
+    │  <SearchResults />  │               │
+    └─────────────────────┴───────────────┘ */
   return (
     <div className="app-layout">
       <aside className="sidebar">
