@@ -61,10 +61,7 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
         df = df[df["transit_mode"] == "subway"].copy()
 
     # Clean ridership: handle commas, convert to int
-    if df["ridership"].dtype == object:
-        df["ridership"] = df["ridership"].str.replace(",", "").astype(int)
-    else:
-        df["ridership"] = df["ridership"].astype(int)
+    df["ridership"] = df["ridership"].astype(str).str.replace(",", "").astype(int)
 
     # Clean transfers: convert to int, fill missing with 0
     if "transfers" in df.columns:
@@ -106,9 +103,10 @@ def compute_stats(train_df: pd.DataFrame) -> pd.DataFrame:
     stats["std"] = stats["std"].fillna(1.0)
     return stats
 
-# Build station_complex_id -> node_id mapping from training data
-def build_node_mapping(train_df: pd.DataFrame) -> dict:
-    all_stations = sorted(train_df["station_complex_id"].unique())
+# Build station_complex_id -> node_id mapping from all data (not just train)
+# Only stats need to be train-only to avoid leakage; the node index is just a stable ID
+def build_node_mapping(df: pd.DataFrame) -> dict:
+    all_stations = sorted(df["station_complex_id"].unique())
     mapping = {station: idx for idx, station in enumerate(all_stations)}
     return mapping
 
@@ -129,6 +127,8 @@ def add_features(df: pd.DataFrame, stats: pd.DataFrame, ComplexNodes: dict) -> p
     df["hour"] = df["transit_timestamp"].dt.hour
     df["sin_hour"] = np.sin(2 * np.pi * df["hour"] / 24)
     df["cos_hour"] = np.cos(2 * np.pi * df["hour"] / 24)
+    df["morning_peak"] = df["hour"].between(7, 9).astype(int)
+    df["evening_peak"] = df["hour"].between(16, 18).astype(int)
 
     # Node ID (filter to known stations)
     df = df[df["station_complex_id"].isin(ComplexNodes)].copy()
@@ -192,9 +192,9 @@ def main():
     stats.to_csv(os.path.join(PROC_DIR, "stats.csv"), index=False)
     print(f"  Saved stats for {len(stats)} stations")
 
-    # 4. Build node mapping from training data to avoid unseen stations in val/test
+    # 4. Build node mapping from data
     print("\n4. Building node mapping...")
-    ComplexNodes = build_node_mapping(train_df)
+    ComplexNodes = build_node_mapping(df)
     mapping_df = pd.DataFrame([
         {"complex_id": k, "node_id": v} for k, v in ComplexNodes.items()
     ])

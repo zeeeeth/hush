@@ -85,8 +85,8 @@ export function SearchResults({
         {bestIdx + 1} recommended
       </div>
 
-      {orderedRoutes.map((route, i) => (
-        <RouteCard key={i} route={route} isBest={i === bestIdx} />
+      {orderedRoutes.map(({ route, idx }) => (
+        <RouteCard key={idx} route={route} isBest={idx === bestIdx} />
       ))}
     </>
   );
