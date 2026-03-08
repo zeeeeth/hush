@@ -13,7 +13,7 @@ export function RouteCard({ route, isBest }: Props) {
   const transferText = transfers === 0 ? "Direct" : `${transfers} transfer${transfers > 1 ? "s" : ""}`;
 
   // Quiet score badge
-  let quietBadge: React.ReactNode;
+  let quietBadge: React.ReactNode; // Something that React can render
   if (quiet_score !== null && quiet_score !== undefined) {
     if (quiet_score >= 7) {
       quietBadge = <span className="quiet-badge-good">• Quiet {quiet_score}/10</span>;

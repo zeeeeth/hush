@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { fetchStations, fetchRoutes, fetchStationCoords } from "./api/client";
 import { Header } from "./components/Header";
 import { SearchInputs } from "./components/SearchInputs";
@@ -32,19 +32,16 @@ function App() {
   const effectiveOriginId = stations[effectiveOrigin]?.id ?? "";
   const effectiveDestinationId = stations[effectiveDestination]?.id ?? "";
 
-  const {
-    data: routesData,
-    error,
-    isFetching,
-    refetch,
-  } = useQuery({
+  // Route fetch
+  const { data: routesData, error, isFetching, refetch } = useQuery({
     queryKey: ["routes", effectiveOriginId, effectiveDestinationId],
     queryFn: () => fetchRoutes(effectiveOriginId, effectiveDestinationId),
     enabled: false, // Do not run on mount or when origin/destination changes - only when user clicks "Find Routes"
     retry: false,
+    placeholderData: keepPreviousData, // Keep old results visible while user changes dropdowns
   });
 
-
+  // Handler for when user clicks "Find Routes" - validate input and trigger route fetch
   function handleSearch() {
     if (!effectiveOriginId || !effectiveDestinationId || effectiveOriginId === effectiveDestinationId) return;
     setSearched(true);
@@ -73,17 +70,19 @@ function App() {
   const coordQueries = useQuery({
     queryKey: ["stationCoords", stopNames],
     queryFn: async () => {
-      const entries = await Promise.all(
-        stopNames.map(async (name) => {
-          const result = await fetchStationCoords(name);
-          return result ? ([name, result] as const) : null;
-        })
-      );
-      return Object.fromEntries(entries.filter(Boolean) as [string, { lat: number; lng: number; name: string }][]);
+        const entries = []
+        for (const name of stopNames) {
+            const result = await fetchStationCoords(name);
+            if (result) {
+                entries.push([name, result]);
+            }
+        }
+        return Object.fromEntries(entries);
     },
     enabled: stopNames.length > 0,
     staleTime: Infinity,
   });
+
   /*┌─────────────────────┬──────────────────────────────┐
     │  <aside.sidebar>    │  <main>                      │
     │  <Header />         │  <MapView />                 │
