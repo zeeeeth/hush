@@ -58,6 +58,14 @@ export function SearchResults({
   });
   const bestIdx = routes.findIndex((r) => r.is_recommended);
 
+  // Recommended route should appear first
+  const orderedRoutes = routes.map((route, idx) => ({ route, idx }));
+  orderedRoutes.sort((a, b) => {
+    if (a.idx === bestIdx) return -1; // Put a before b
+    if (b.idx === bestIdx) return 1;  // Put b before a
+    return 0;                         // Leave as is
+  })
+
   return (
     <>
       <div className="prediction-banner">
@@ -77,7 +85,7 @@ export function SearchResults({
         {bestIdx + 1} recommended
       </div>
 
-      {routes.map((route, i) => (
+      {orderedRoutes.map((route, i) => (
         <RouteCard key={i} route={route} isBest={i === bestIdx} />
       ))}
     </>
