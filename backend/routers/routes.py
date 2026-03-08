@@ -1,28 +1,34 @@
-from fastapi import APIRouter, HTTPException, Query
+from flask import Blueprint, jsonify, request
 from datetime import datetime, timedelta
 from services.station_data import load_station_coordinates, get_station_list, find_station_coords_by_name
 from services.routing import get_routes
 
-router = APIRouter()
+routes_bp = Blueprint("routes", __name__)
 
 
-@router.get("/stations")
+@routes_bp.get("/stations")
 def list_stations():
     """Return sorted list of all stations with id, name, lat, lng."""
-    return get_station_list()
+    return jsonify(get_station_list())
 
 
-@router.get("/routes")
-def find_routes(origin_id: str = Query(...), destination_id: str = Query(...)):
+@routes_bp.get("/routes")
+def find_routes():
     """
     Find transit routes between two stations.
     Returns scored routes with quiet scores.
     """
+    origin_id = request.args.get("origin_id")
+    destination_id = request.args.get("destination_id")
+
+    if not origin_id or not destination_id:
+        return jsonify({"error": "origin_id and destination_id are required"}), 400
+
     coords = load_station_coordinates()
     routes, error = get_routes(origin_id, destination_id, coords)
 
     if error:
-        raise HTTPException(status_code=404, detail=error)
+        return jsonify({"error": error}), 404
 
     # Mark recommended route
     if routes:
@@ -31,24 +37,25 @@ def find_routes(origin_id: str = Query(...), destination_id: str = Query(...)):
             route["is_recommended"] = i == best_idx
 
     now = datetime.now()
-    return {
+    return jsonify({
         "routes": routes,
         "prediction_window": {
             "from": now.isoformat(),
             "to": (now + timedelta(hours=1)).isoformat(),
         },
-    }
+    })
 
 
-@router.get("/station-coords")
-def station_coords_by_name(name: str = Query(...)):
-    """Find station coordinates by name (fuzzy match)."""
+@routes_bp.get("/station-coords")
+def station_coords_by_name():
+    """Find station coordinates by name."""
+    name = request.args.get("name", "")
     result = find_station_coords_by_name(name)
     if not result:
-        raise HTTPException(status_code=404, detail=f"Station '{name}' not found")
-    return result
+        return jsonify({"error": f"Station '{name}' not found"}), 404
+    return jsonify(result)
 
 
-@router.get("/health")
+@routes_bp.get("/health")
 def health():
-    return {"status": "ok"}
+    return jsonify({"status": "ok"})

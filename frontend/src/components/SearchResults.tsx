@@ -61,9 +61,8 @@ export function SearchResults({
   return (
     <>
       <div className="prediction-banner">
-        <span className="prediction-icon">🔮</span>
         <div className="prediction-text">
-          <div className="prediction-label">AI Congestion Forecast</div>
+          <div className="prediction-label">Congestion Forecast</div>
           <div className="prediction-time">
             {fromTime} → {toTime}
           </div>

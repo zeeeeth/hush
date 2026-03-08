@@ -249,9 +249,19 @@ html, body, #root {
   border: 1px solid rgba(255, 68, 68, 0.2);
 }
 
-.quiet-badge-pending {
+.quiet-badge-moderate {
   background: var(--accent-yellow-dim);
   color: var(--accent-yellow);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.8rem;
+  border: 1px solid var(--border-subtle);
+}
+
+.quiet-badge-pending {
+  background: var(--accent-blue-dim);
+  color: var(--accent-blue);
   padding: 6px 12px;
   border-radius: 6px;
   font-weight: 500;

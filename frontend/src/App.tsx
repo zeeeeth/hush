@@ -8,20 +8,23 @@ import { MapView } from "./components/MapView";
 import type { Route } from "./types";
 
 function App() {
+  // Fetch stations once on load - { {stationName: { id, lat, lng } } }
   const { data: stations = {} } = useQuery({
     queryKey: ["stations"],
     queryFn: fetchStations,
-    staleTime: Infinity,
+    staleTime: Infinity, // never refetch unless page reloads
   });
 
+  // Sorted array of keys from stations, used for dropdown options
   const stationNames = useMemo(() =>
     Object.keys(stations).sort(), [stations]);
 
+  // User-selected origin/destination from dropdowns
+  // Initially empty, but fallback to first/second station in list for search until user picks
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
   const [searched, setSearched] = useState(false);
 
-  // Derive effective values: fall back to first/second station before user picks
   const effectiveOrigin = origin || stationNames[0] || "";
   const effectiveDestination =
     destination || stationNames[Math.min(1, stationNames.length - 1)] || "";
@@ -37,9 +40,10 @@ function App() {
   } = useQuery({
     queryKey: ["routes", effectiveOriginId, effectiveDestinationId],
     queryFn: () => fetchRoutes(effectiveOriginId, effectiveDestinationId),
-    enabled: false,
+    enabled: false, // Do not run on mount or when origin/destination changes - only when user clicks "Find Routes"
     retry: false,
   });
+
 
   function handleSearch() {
     if (!effectiveOriginId || !effectiveDestinationId || effectiveOriginId === effectiveDestinationId) return;
@@ -47,12 +51,13 @@ function App() {
     refetch();
   }
 
+  // Find the best route to pass to the map for showing intermediate stops
   const bestRoute: Route | null = useMemo(() => {
     if (!routesData) return null;
     return routesData.routes.find((r) => r.is_recommended) ?? routesData.routes[0] ?? null;
   }, [routesData]);
 
-  // Fetch coordinates for intermediate stop names that appear in the best route
+  // Collect unique stop names that appear in the best route
   const stopNames = useMemo(() => {
     if (!bestRoute) return [];
     const names = new Set<string>();
@@ -64,6 +69,7 @@ function App() {
     return Array.from(names);
   }, [bestRoute]);
 
+  // Fetch coordinates for all stops in the best route to show on the map
   const coordQueries = useQuery({
     queryKey: ["stationCoords", stopNames],
     queryFn: async () => {
@@ -78,7 +84,12 @@ function App() {
     enabled: stopNames.length > 0,
     staleTime: Infinity,
   });
-
+  /*┌─────────────────────┬──────────────────────────────┐
+    │  <aside.sidebar>    │  <main>                      │
+    │  <Header />         │  <MapView />                 │
+    │  <SearchInputs />   │                              │
+    │  <SearchResults />  │                              │
+    └─────────────────────┴──────────────────────────────┘ */
   return (
     <div className="app-layout">
       <aside className="sidebar">

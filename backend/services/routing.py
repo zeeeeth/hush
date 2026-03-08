@@ -86,8 +86,8 @@ def get_routes(origin_id: str, destination_id: str, coords: dict):
                         line_name = line.get("nameShort") or line.get("name", "?")
                         line_color = line.get("color", "#888888")
                         num_stops = transit.get("stopCount", "?")
-                        # Google Routes API returns e.g. "2 Line", "A Line" — strip the suffix
-                        # so it matches GTFS route IDs like "2", "A"
+                        # Google Routes API returns "2 Line", "A Line" -> strip the suffix
+                        # Matches route IDs like "2", "A"
                         gtfs_route_id = line_name.removesuffix(" Line").strip()
                         intermediate_stops = get_intermediate_stops(
                             gtfs, gtfs_route_id, departure, arrival
