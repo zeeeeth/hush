@@ -31,13 +31,13 @@ export function MapView({
   bestRoute,
   stationCoords,
 }: Props) {
-  const { markers, intermediates, viewState } = useMemo(() => {
+  const { markers, viewState } = useMemo(() => {
     const markers: MarkerPoint[] = [];
-    const intermediates: MarkerPoint[] = [];
 
     const origin = stations[originName];
     const dest = stations[destinationName];
 
+    // Starting station - Green marker
     if (origin?.lat && origin?.lng) {
       markers.push({
         name: originName,
@@ -47,6 +47,8 @@ export function MapView({
         radius: 100,
       });
     }
+
+    // Destination station - Red marker
     if (dest?.lat && dest?.lng) {
       markers.push({
         name: destinationName,
@@ -57,6 +59,7 @@ export function MapView({
       });
     }
 
+    // Intermediate stations in the best route - Yellow
     if (bestRoute) {
       const seen = new Set<string>();
       for (const step of bestRoute.steps) {
@@ -73,7 +76,7 @@ export function MapView({
           if (seen.has(key)) continue;
           seen.add(key);
 
-          intermediates.push({
+          markers.push({
             name: stopName,
             lat: coords.lat,
             lon: coords.lng,
@@ -84,37 +87,29 @@ export function MapView({
       }
     }
 
-    const all = [...markers, ...intermediates];
+    // Center the map on the average location of all markers, or default to Times Square
     const centerLat =
-      all.length > 0
-        ? all.reduce((s, p) => s + p.lat, 0) / all.length
+      markers.length > 0
+        ? markers.reduce((s, p) => s + p.lat, 0) / markers.length
         : 40.758;
     const centerLon =
-      all.length > 0
-        ? all.reduce((s, p) => s + p.lon, 0) / all.length
+      markers.length > 0
+        ? markers.reduce((s, p) => s + p.lon, 0) / markers.length
         : -73.9855;
 
     return {
       markers,
-      intermediates,
       viewState: { latitude: centerLat, longitude: centerLon, zoom: 12, pitch: 0, bearing: 0 },
     };
   }, [originName, destinationName, stations, bestRoute, stationCoords]);
 
+  // DeckGL layer for rendering station markers
   const layers = [
     new ScatterplotLayer<MarkerPoint>({
-      id: "intermediate-stations",
-      data: intermediates,
-      getPosition: (d) => [d.lon, d.lat],
-      getColor: (d) => d.color,
-      getRadius: (d) => d.radius,
-      pickable: true,
-    }),
-    new ScatterplotLayer<MarkerPoint>({
-      id: "main-markers",
+      id: "markers",
       data: markers,
       getPosition: (d) => [d.lon, d.lat],
-      getColor: (d) => d.color,
+      getFillColor: (d) => d.color,
       getRadius: (d) => d.radius,
       pickable: true,
     }),

@@ -13,5 +13,6 @@ COPY backend/ .
 COPY data/processed/ ./data/processed/
 COPY models/ ./models/
 
+# Expose the backend API port
 EXPOSE 8000
-CMD ["gunicorn", "-w", "2", "-b", "0.0.0.0:8000", "main:app"]
+CMD ["gunicorn", "-w", "2", "-b", "0.0.0.0:8000", "--preload", "main:app"]
