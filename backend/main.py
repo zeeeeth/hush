@@ -1,4 +1,5 @@
 import logging
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -7,7 +8,11 @@ from routers.routes import router
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+DEPLOYED_FRONTEND_URL = os.getenv("DEPLOYED_FRONTEND_URL")
 
+#---------------------------------------
+# FastAPI Startup Events
+#---------------------------------------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Load GNN model and station data into memory at startup."""
@@ -21,23 +26,27 @@ async def lifespan(app: FastAPI):
     get_station_list()
     load_gtfs_lookup()
 
-    # Run initial prediction to load model
+    # Run an initial prediction to load model
     get_tap_in_predictions()
 
     logger.info("Startup complete.")
     yield
 
-
+#---------------------------------------
+# Create FastAPI app
+#---------------------------------------
 app = FastAPI(title="Hush API", lifespan=lifespan)
 
+# CORS middleware to allow frontend access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",
-        "https://hush-d5dr.onrender.com",
+        "http://localhost:5173",  # Local frontend dev
+        DEPLOYED_FRONTEND_URL,    # Deployed frontend URL on Render
     ],
     allow_methods=["GET"],
     allow_headers=["*"],
 )
 
+# Include API routes
 app.include_router(router, prefix="/api")
