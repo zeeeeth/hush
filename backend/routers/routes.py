@@ -48,7 +48,7 @@ def find_routes():
 
 @routes_bp.get("/station-coords")
 def station_coords_by_name():
-    """Find station coordinates by name."""
+    """Find station coordinates by name. For displaying markers on the map."""
     name = request.args.get("name", "")
     result = find_station_coords_by_name(name)
     if not result:

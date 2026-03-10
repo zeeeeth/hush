@@ -21,8 +21,12 @@ interface Props {
   stationCoords: Record<string, { lat: number; lng: number; name: string }>;
 }
 
-const MAP_STYLE =
-  "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+const MAP_STYLE ="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+const TIMES_SQUARE_COORDS = { lat: 40.758, lng: -73.9855 };
+const GREEN: [number, number, number, number]  = [0, 255, 136, 255];
+const RED: [number, number, number, number]    = [255, 68, 68, 255];
+const YELLOW: [number, number, number, number] = [250, 204, 21, 255];
+const DEFAULT_MARKER_RADIUS = 100;
 
 export function MapView({
   originName,
@@ -43,8 +47,8 @@ export function MapView({
         name: originName,
         lat: origin.lat,
         lon: origin.lng,
-        color: [0, 255, 136, 255],
-        radius: 100,
+        color: GREEN,
+        radius: DEFAULT_MARKER_RADIUS,
       });
     }
 
@@ -54,8 +58,8 @@ export function MapView({
         name: destinationName,
         lat: dest.lat,
         lon: dest.lng,
-        color: [255, 68, 68, 255],
-        radius: 100,
+        color: RED,
+        radius: DEFAULT_MARKER_RADIUS,
       });
     }
 
@@ -80,8 +84,8 @@ export function MapView({
             name: stopName,
             lat: coords.lat,
             lon: coords.lng,
-            color: [250, 204, 21, 255],
-            radius: 100,
+            color: YELLOW,
+            radius: DEFAULT_MARKER_RADIUS,
           });
         }
       }
@@ -91,11 +95,11 @@ export function MapView({
     const centerLat =
       markers.length > 0
         ? markers.reduce((s, p) => s + p.lat, 0) / markers.length
-        : 40.758;
+        : TIMES_SQUARE_COORDS.lat;
     const centerLon =
       markers.length > 0
         ? markers.reduce((s, p) => s + p.lon, 0) / markers.length
-        : -73.9855;
+        : TIMES_SQUARE_COORDS.lng;
 
     return {
       markers,

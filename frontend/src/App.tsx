@@ -26,9 +26,8 @@ function App() {
   const [searched, setSearched] = useState(false);
 
   const effectiveOrigin = origin || stationNames[0] || "";
-  const effectiveDestination =
-    destination || stationNames[Math.min(1, stationNames.length - 1)] || "";
-
+  const effectiveDestination = destination || stationNames[1] || "";
+  
   const effectiveOriginId = stations[effectiveOrigin]?.id ?? "";
   const effectiveDestinationId = stations[effectiveDestination]?.id ?? "";
 
@@ -44,17 +43,17 @@ function App() {
   // Handler for when user clicks "Find Routes" - validate input and trigger route fetch
   function handleSearch() {
     if (!effectiveOriginId || !effectiveDestinationId || effectiveOriginId === effectiveDestinationId) return;
-    setSearched(true);
-    refetch();
+    setSearched(true);  // Render search results section
+    refetch();          // Trigger the route fetch query -> routesData updates -> triggers re-render of SearchResults
   }
 
-  // Find the best route to pass to the map for showing intermediate stops
+  // Update best route to pass to the map for showing intermediate stops - triggered on routesData update
   const bestRoute: Route | null = useMemo(() => {
     if (!routesData) return null;
     return routesData.routes.find((r) => r.is_recommended) ?? routesData.routes[0] ?? null;
   }, [routesData]);
 
-  // Collect unique stop names that appear in the best route
+  // Collect unique stop names that appear in the best route - triggered on bestRoute update
   const stopNames = useMemo(() => {
     if (!bestRoute) return [];
     const names = new Set<string>();
@@ -66,7 +65,7 @@ function App() {
     return Array.from(names);
   }, [bestRoute]);
 
-  // Fetch coordinates for all stops in the best route to show on the map
+  // Fetch coordinates for all stops in the best route to show on the map - triggered on stopNames update
   const coordQueries = useQuery({
     queryKey: ["stationCoords", stopNames],
     queryFn: async () => {

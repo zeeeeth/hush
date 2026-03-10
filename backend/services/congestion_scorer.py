@@ -95,10 +95,10 @@ class CongestionScorer:
 
     def _find_station_id(self, station_name: str) -> int | None:
         """
-        Find station_complex_id from station name using fuzzy matching.
+        Find station_complex_id from station name.
         
         Args:
-            station_name: Station name from Google Maps (e.g., "Times Sq-42 St")
+            station_name: Station name from Google Maps
         
         Returns:
             station_complex_id or None if not found
@@ -112,6 +112,7 @@ class CongestionScorer:
         clean_query = station_name.lower().replace("-", " ").replace("  ", " ")
 
         for name, complex_id in self.station_name_to_id.items():
+            # 1. Exact match
             clean_name = name.lower().replace("-", " ").replace("  ", " ")
 
             if clean_query in clean_name or clean_name in clean_query:
@@ -119,6 +120,8 @@ class CongestionScorer:
 
             query_parts = clean_query.split()[:2]
             name_parts = clean_name.split()[:2]
+            
+            # 2. Partial match on first 1 or 2 words
             if query_parts and name_parts and query_parts[0] == name_parts[0]:
                 return complex_id
 

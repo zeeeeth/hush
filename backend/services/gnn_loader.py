@@ -48,10 +48,13 @@ def get_tap_in_predictions() -> dict:
             (ridership_df["hour"] == current_hour) & (ridership_df["dow"] == current_dow)
         ]
 
-        # Fallback 1: same DOW, any hour
+        # Fallback 1: same DOW, same hour
+        if len(matching) == 0:
+            matching = ridership_df[ridership_df["hour"] == current_hour]
+        # Fallback 2: same DOW, any hour
         if len(matching) == 0:
             matching = ridership_df[ridership_df["dow"] == current_dow]
-        # Fallback 2: any row
+        # Fallback 3: any row
         if len(matching) == 0:
             matching = ridership_df
 

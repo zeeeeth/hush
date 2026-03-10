@@ -49,7 +49,6 @@ class DirSAGEEmbRes(nn.Module):
         h = torch.cat([h_in, h_out], dim=-1)
         return self.lin(h).squeeze(-1)
 
-
 class GNNPredictor:
     """Wrapper for GNN inference."""
 
@@ -61,7 +60,13 @@ class GNNPredictor:
         ComplexNodes_path="data/processed/ComplexNodes.csv",
         edges_path="data/processed/ComplexEdges.csv",
     ):
-        """Initialize predictor with model and mappings."""
+        """
+            Initialize predictor with model and mappings.
+            Reads graph structure, station mappings, and normalisation stats csv from disk.
+            Builds the edge tensor.
+            Loads PyTorch model weights from disk into memory.
+            Sets up dicts for node/stat lookups
+        """
 
         self.ComplexNodes = pd.read_csv(ComplexNodes_path)
         self.node_to_cmplx = dict(
@@ -76,10 +81,10 @@ class GNNPredictor:
             zip(self.stats["station_complex_id"], zip(self.stats["mean"], self.stats["std"]))
         )
 
-        # Use mapping size as num_nodes (safer than max+1)
+        # Use mapping size as num_nodes
         self.num_nodes = len(self.ComplexNodes_dict)
 
-        # Load edges (DIRECTED) and build both directions for dual-pass
+        # Load edges and build both directions for dual-pass
         edges_df = pd.read_csv(edges_path)
 
         edge_in = []   # from -> to
@@ -94,11 +99,12 @@ class GNNPredictor:
                 edge_in.append([u, v])
                 edge_out.append([v, u])
 
-        # Add self-loops to both edge sets (helps stability)
+        # Add self-loops - aggregate neighbours and self
         for i in range(self.num_nodes):
             edge_in.append([i, i])
             edge_out.append([i, i])
 
+        # Convert to tensors of shape [2, num_edges] - PyTorch Geometric expects this format
         self.edge_in = torch.tensor(edge_in, dtype=torch.long).T
         self.edge_out = torch.tensor(edge_out, dtype=torch.long).T
 
@@ -108,7 +114,7 @@ class GNNPredictor:
         hidden_dim = config.get("hidden_dim", 128)
         emb_dim = config.get("emb_dim", 32)
         self.model = DirSAGEEmbRes(
-            num_nodes=self.num_nodes, in_dim=5, hidden_dim=hidden_dim, emb_dim=emb_dim
+            num_nodes=self.num_nodes, in_dim=7, hidden_dim=hidden_dim, emb_dim=emb_dim
         )
         self.model.load_state_dict(torch.load(model_path, map_location=torch.device("cpu")))
         self.model.eval()
@@ -118,25 +124,30 @@ class GNNPredictor:
         Run inference to predict next hour's tap-ins.
 
         Args:
-            current_ridership_df: DataFrame with columns ['station_complex_id', 'ridership']
+            current_ridership_df: df with columns ['station_complex_id', 'ridership']
             current_time: Current timestamp (defaults to now)
 
         Returns:
             Dict mapping station_complex_id -> predicted_tap_ins
         """
+
+        # This should never happen, defensive check in case.
         if current_time is None:
             current_time = datetime.now()
 
-        # Prepare input features (ridership_norm, sin/cos hour, sin/cos dow)
-        X = torch.zeros(self.num_nodes, 5)
+        # Prepare input features (ridership_norm, sin/cos hour, sin/cos dow, morning_peak, evening_peak)
+        X = torch.zeros(self.num_nodes, 7)
 
         hour = current_time.hour
         sin_hour = np.sin(2 * np.pi * hour / 24)
         cos_hour = np.cos(2 * np.pi * hour / 24)
 
-        dow = current_time.weekday()  # 0=Mon ... 6=Sun
+        dow = current_time.weekday()  # 0 = Mon ... 6 = Sun
         sin_dow = np.sin(2 * np.pi * dow / 7)
         cos_dow = np.cos(2 * np.pi * dow / 7)
+
+        morning_peak = 1.0 if 7 <= hour <= 9 else 0.0
+        evening_peak = 1.0 if 16 <= hour <= 18 else 0.0
 
         # Fill in features for stations with data
         for _, row in current_ridership_df.iterrows():
@@ -160,6 +171,8 @@ class GNNPredictor:
             X[node_id, 2] = cos_hour
             X[node_id, 3] = sin_dow
             X[node_id, 4] = cos_dow
+            X[node_id, 5] = morning_peak
+            X[node_id, 6] = evening_peak
 
         # Run inference
         with torch.no_grad():
@@ -184,10 +197,9 @@ class GNNPredictor:
 
         return predictions
 
-
-# Singleton instance (cached)
+# Singleton to ensure that only one instance of the predictor is loaded in memory
+# Cached for the lifetime of the process (indefinite)
 _predictor_instance = None
-
 
 def get_predictor():
     """Get or create GNN predictor singleton."""

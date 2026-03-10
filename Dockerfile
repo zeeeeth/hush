@@ -15,4 +15,6 @@ COPY models/ ./models/
 
 # Expose the backend API port
 EXPOSE 8000
+# --preload to load the model into memory, ensure that the model is loaded once at startup and shared across all worker processes
+# Only one model throughout the lifetime of the process, reduce inference latency later
 CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:8000", "--timeout", "120", "--preload", "main:app"]
