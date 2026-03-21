@@ -17,6 +17,14 @@ export function SearchInputs({
   onSearch,
   loading,
 }: Props) {
+  if (stationNames.length === 0) {
+    return (
+      <div className="search-container">
+        <div>Loading station names...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="search-container">
       <div>
